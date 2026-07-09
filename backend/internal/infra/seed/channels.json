@@ -1,0 +1,202 @@
+[
+  {
+    "code": "site",
+    "name": "Site proprio",
+    "description": "Venda em loja propria. Gateway e checkout devem ser adicionados manualmente.",
+    "enabled": true,
+    "fee_rules": {
+      "strategy": "fixed",
+      "default_commission_bps": 0,
+      "fixed_fee_cents": 0,
+      "min_commission_cents": 0,
+      "manual_adjustable": true,
+      "tiers": [],
+      "categories": [],
+      "options": []
+    },
+    "last_verified_at": "2026-07-09",
+    "source_note": "Taxas de gateway/checkout devem ser inseridas manualmente."
+  },
+  {
+    "code": "shopee",
+    "name": "Shopee",
+    "description": "Comissao e tarifa fixa por faixa de preco.",
+    "enabled": true,
+    "fee_rules": {
+      "strategy": "tiered",
+      "default_commission_bps": 1400,
+      "fixed_fee_cents": 0,
+      "min_commission_cents": 0,
+      "manual_adjustable": true,
+      "tiers": [
+        { "label": "ate R$79,99", "min_price_cents": 0, "max_price_cents": 7999, "commission_bps": 2000, "fixed_fee_cents": 400 },
+        { "label": "R$80 a R$99,99", "min_price_cents": 8000, "max_price_cents": 9999, "commission_bps": 1400, "fixed_fee_cents": 1600 },
+        { "label": "R$100 a R$199,99", "min_price_cents": 10000, "max_price_cents": 19999, "commission_bps": 1400, "fixed_fee_cents": 2000 },
+        { "label": "R$200 a R$499,99", "min_price_cents": 20000, "max_price_cents": 49999, "commission_bps": 1400, "fixed_fee_cents": 2600 },
+        { "label": "acima de R$500", "min_price_cents": 50000, "max_price_cents": null, "commission_bps": 1400, "fixed_fee_cents": 2800 }
+      ],
+      "categories": [],
+      "options": []
+    },
+    "last_verified_at": "2026-07-09",
+    "source_note": "Seed inicial baseada na referencia visual do projeto e em fontes publicas recentes. Confirmar no Seller Center da Shopee antes de uso operacional."
+  },
+  {
+    "code": "tiktok_shop",
+    "name": "TikTok Shop",
+    "description": "Comissao oficial por faixa e programa de frete opcional.",
+    "enabled": true,
+    "fee_rules": {
+      "strategy": "tiered",
+      "default_commission_bps": 600,
+      "fixed_fee_cents": 0,
+      "min_commission_cents": 0,
+      "manual_adjustable": true,
+      "tiers": [
+        { "label": "abaixo de R$50", "min_price_cents": 0, "max_price_cents": 4999, "commission_bps": 1000, "fixed_fee_cents": 400 },
+        { "label": "R$50 ou mais", "min_price_cents": 5000, "max_price_cents": null, "commission_bps": 600, "fixed_fee_cents": 600 }
+      ],
+      "categories": [],
+      "options": [
+        {
+          "code": "tiktok_frete_program",
+          "label": "Programa de Frete TikTok Shop",
+          "type": "percentage_with_cap",
+          "bps": 600,
+          "cap_cents": 5000,
+          "fixed_amount_cents": 0,
+          "default_enabled": false
+        }
+      ]
+    },
+    "last_verified_at": "2026-07-09",
+    "source_note": "Regra inicial editavel. Confirmar no portal do TikTok Shop antes de uso operacional."
+  },
+  {
+    "code": "mercado_livre_classico",
+    "name": "Mercado Livre Classico",
+    "description": "Default conservador ajustavel por categoria e tipo de anuncio.",
+    "enabled": true,
+    "fee_rules": {
+      "strategy": "fixed",
+      "default_commission_bps": 1400,
+      "fixed_fee_cents": 0,
+      "min_commission_cents": 0,
+      "manual_adjustable": true,
+      "tiers": [],
+      "categories": [],
+      "options": []
+    },
+    "last_verified_at": "2026-07-09",
+    "source_note": "Taxa varia por categoria, tipo de anuncio e regras do Mercado Livre. Valor default e apenas placeholder conservador."
+  },
+  {
+    "code": "mercado_livre_premium",
+    "name": "Mercado Livre Premium",
+    "description": "Default conservador ajustavel por categoria e tipo de anuncio.",
+    "enabled": true,
+    "fee_rules": {
+      "strategy": "fixed",
+      "default_commission_bps": 1900,
+      "fixed_fee_cents": 0,
+      "min_commission_cents": 0,
+      "manual_adjustable": true,
+      "tiers": [],
+      "categories": [],
+      "options": []
+    },
+    "last_verified_at": "2026-07-09",
+    "source_note": "Taxa varia por categoria, tipo de anuncio e regras do Mercado Livre. Valor default e apenas placeholder conservador."
+  },
+  {
+    "code": "amazon",
+    "name": "Amazon",
+    "description": "Comissao por categoria, com comissao minima e plano individual opcional.",
+    "enabled": true,
+    "fee_rules": {
+      "strategy": "category",
+      "default_commission_bps": 1500,
+      "fixed_fee_cents": 0,
+      "min_commission_cents": 100,
+      "manual_adjustable": true,
+      "tiers": [],
+      "categories": [
+        { "code": "default", "name": "Default", "commission_bps": 1500, "fixed_fee_cents": 0 },
+        { "code": "comidas_bebidas", "name": "Comidas e bebidas", "commission_bps": 1000, "fixed_fee_cents": 0 },
+        { "code": "cozinha", "name": "Cozinha", "commission_bps": 1200, "fixed_fee_cents": 0 },
+        { "code": "casa", "name": "Casa", "commission_bps": 1200, "fixed_fee_cents": 0 },
+        { "code": "beleza", "name": "Beleza", "commission_bps": 1300, "fixed_fee_cents": 0 },
+        { "code": "roupas_acessorios", "name": "Roupas e acessorios", "commission_bps": 1400, "fixed_fee_cents": 0 },
+        { "code": "livros", "name": "Livros", "commission_bps": 1500, "fixed_fee_cents": 0 },
+        { "code": "demais", "name": "Demais categorias", "commission_bps": 1500, "fixed_fee_cents": 0 }
+      ],
+      "options": [
+        {
+          "code": "amazon_plano_individual",
+          "label": "Plano individual Amazon",
+          "type": "fixed_amount",
+          "bps": 0,
+          "cap_cents": null,
+          "fixed_amount_cents": 200,
+          "default_enabled": false
+        }
+      ]
+    },
+    "last_verified_at": "2026-07-09",
+    "source_note": "Plano profissional mensal nao entra automaticamente no calculo unitario; rateie manualmente se necessario. Conferir valores no Seller Central."
+  },
+  {
+    "code": "temu",
+    "name": "Temu",
+    "description": "Default sem comissao, sujeito a contrato da conta.",
+    "enabled": true,
+    "fee_rules": {
+      "strategy": "fixed",
+      "default_commission_bps": 0,
+      "fixed_fee_cents": 0,
+      "min_commission_cents": 0,
+      "manual_adjustable": true,
+      "tiers": [],
+      "categories": [],
+      "options": []
+    },
+    "last_verified_at": "2026-07-09",
+    "source_note": "Pagina de seller local informa 0% commission/no hidden fees. Confirmar no contrato da conta."
+  },
+  {
+    "code": "shein",
+    "name": "Shein",
+    "description": "Comissao default editavel.",
+    "enabled": true,
+    "fee_rules": {
+      "strategy": "fixed",
+      "default_commission_bps": 1600,
+      "fixed_fee_cents": 0,
+      "min_commission_cents": 0,
+      "manual_adjustable": true,
+      "tiers": [],
+      "categories": [],
+      "options": []
+    },
+    "last_verified_at": "2026-07-09",
+    "source_note": "Politica publica indica comissao de 16%. Confirmar no portal de seller."
+  },
+  {
+    "code": "manual",
+    "name": "Outro / Manual",
+    "description": "Canal manual para custos editaveis.",
+    "enabled": true,
+    "fee_rules": {
+      "strategy": "fixed",
+      "default_commission_bps": 0,
+      "fixed_fee_cents": 0,
+      "min_commission_cents": 0,
+      "manual_adjustable": true,
+      "tiers": [],
+      "categories": [],
+      "options": []
+    },
+    "last_verified_at": "2026-07-09",
+    "source_note": "Todos os custos devem ser editados manualmente pelo usuario."
+  }
+]

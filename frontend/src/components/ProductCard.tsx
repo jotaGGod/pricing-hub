@@ -1,0 +1,68 @@
+import { Save } from "lucide-react";
+import type { NormalizedChannel, PricingInput } from "../types";
+import { MoneyInput } from "./MoneyInput";
+
+type ProductCardProps = {
+  value: PricingInput;
+  channels: NormalizedChannel[];
+  onChange: (value: PricingInput) => void;
+  onSave: () => void;
+  saving: boolean;
+};
+
+export function ProductCard({ value, channels, onChange, onSave, saving }: ProductCardProps) {
+  return (
+    <section className="glass-card p-5">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-base font-black">Produto</h2>
+        <button type="button" className="btn-secondary h-9 px-3" onClick={onSave} disabled={saving}>
+          <Save size={16} />
+          Produto
+        </button>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="block space-y-2 md:col-span-2">
+          <span className="field-label">Titulo</span>
+          <input
+            className="input-base"
+            value={value.product_title}
+            maxLength={120}
+            onChange={(event) => onChange({ ...value, product_title: event.target.value })}
+          />
+        </label>
+        <MoneyInput
+          label="Custo"
+          value={value.product_cost_cents}
+          onChange={(product_cost_cents) => onChange({ ...value, product_cost_cents })}
+        />
+        <label className="block space-y-2">
+          <span className="field-label">Categoria</span>
+          <input
+            className="input-base"
+            value={value.channel_options.category_code}
+            onChange={(event) =>
+              onChange({
+                ...value,
+                channel_options: { ...value.channel_options, category_code: event.target.value }
+              })
+            }
+          />
+        </label>
+        <label className="block space-y-2 md:col-span-2">
+          <span className="field-label">Canal padrao</span>
+          <select
+            className="input-base"
+            value={value.channel_code}
+            onChange={(event) => onChange({ ...value, channel_code: event.target.value })}
+          >
+            {channels.map((channel) => (
+              <option key={channel.code} value={channel.code}>
+                {channel.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    </section>
+  );
+}

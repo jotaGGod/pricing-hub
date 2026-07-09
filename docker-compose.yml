@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pricing-hub-postgres
+    environment:
+      POSTGRES_DB: pricing_hub
+      POSTGRES_USER: pricing
+      POSTGRES_PASSWORD: pricing
+    ports:
+      - "5432:5432"
+    volumes:
+      - pricing_hub_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pricing -d pricing_hub"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: pricing-hub-backend
+    environment:
+      APP_ENV: development
+      PORT: 8080
+      DATABASE_URL: postgres://pricing:pricing@postgres:5432/pricing_hub?sslmode=disable
+      FRONTEND_URL: http://localhost:5173
+      JWT_ACCESS_SECRET: change-me-in-local-env
+      ACCESS_TOKEN_TTL_MINUTES: 15
+      REFRESH_TOKEN_TTL_HOURS: 720
+      COOKIE_SECURE: "false"
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: http://localhost:8080/api/auth/google/callback
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: pricing-hub-frontend
+    environment:
+      VITE_API_URL: http://localhost:8080/api
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  pricing_hub_pgdata:
