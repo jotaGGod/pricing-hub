@@ -1,0 +1,9 @@
+backend/.env
+backend/tmp/
+frontend/.env
+frontend/dist/
+frontend/node_modules/
+frontend/.vite/
+frontend/coverage/
+*.log
+.DS_Store
