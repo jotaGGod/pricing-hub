@@ -12,15 +12,15 @@ type ProductCardProps = {
 
 export function ProductCard({ value, channels, onChange, onSave, saving }: ProductCardProps) {
   return (
-    <section className="glass-card p-5">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-base font-black">Produto</h2>
+    <section className="glass-card p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-sm font-black uppercase tracking-normal text-slate-500 dark:text-slate-300">Produto</h2>
         <button type="button" className="btn-secondary h-9 px-3" onClick={onSave} disabled={saving}>
           <Save size={16} />
           Produto
         </button>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <label className="block space-y-2 md:col-span-2">
           <span className="field-label">Titulo</span>
           <input

@@ -19,7 +19,7 @@ func NewSimulationRepository(db *pgxpool.Pool) *SimulationRepository {
 
 func (r *SimulationRepository) List(ctx context.Context, userID string) ([]domain.Simulation, error) {
 	rows, err := r.db.Query(ctx, `
-		select id, user_id, product_id, title, channel_code, input_json, result_json, created_at
+		select id, user_id, product_id, title, description, channel_code, input_json, result_json, created_at
 		from pricing_simulations
 		where user_id = $1
 		order by created_at desc
@@ -51,20 +51,39 @@ func (r *SimulationRepository) Create(ctx context.Context, simulation domain.Sim
 	}
 
 	created, err := scanSimulation(r.db.QueryRow(ctx, `
-		insert into pricing_simulations (user_id, product_id, title, channel_code, input_json, result_json)
-		values ($1, $2, $3, $4, $5, $6)
-		returning id, user_id, product_id, title, channel_code, input_json, result_json, created_at
-	`, simulation.UserID, simulation.ProductID, simulation.Title, simulation.ChannelCode, inputJSON, resultJSON).Scan)
+		insert into pricing_simulations (user_id, product_id, title, description, channel_code, input_json, result_json)
+		values ($1, $2, $3, $4, $5, $6, $7)
+		returning id, user_id, product_id, title, description, channel_code, input_json, result_json, created_at
+	`, simulation.UserID, simulation.ProductID, simulation.Title, simulation.Description, simulation.ChannelCode, inputJSON, resultJSON).Scan)
 	return created, mapDBError(err)
 }
 
 func (r *SimulationRepository) FindByID(ctx context.Context, userID string, id string) (domain.Simulation, error) {
 	simulation, err := scanSimulation(r.db.QueryRow(ctx, `
-		select id, user_id, product_id, title, channel_code, input_json, result_json, created_at
+		select id, user_id, product_id, title, description, channel_code, input_json, result_json, created_at
 		from pricing_simulations
 		where user_id = $1 and id = $2
 	`, userID, id).Scan)
 	return simulation, mapDBError(err)
+}
+
+func (r *SimulationRepository) Update(ctx context.Context, simulation domain.Simulation) (domain.Simulation, error) {
+	inputJSON, err := json.Marshal(simulation.Input)
+	if err != nil {
+		return domain.Simulation{}, err
+	}
+	resultJSON, err := json.Marshal(simulation.Result)
+	if err != nil {
+		return domain.Simulation{}, err
+	}
+
+	updated, err := scanSimulation(r.db.QueryRow(ctx, `
+		update pricing_simulations
+		set product_id = $3, title = $4, description = $5, channel_code = $6, input_json = $7, result_json = $8
+		where user_id = $1 and id = $2
+		returning id, user_id, product_id, title, description, channel_code, input_json, result_json, created_at
+	`, simulation.UserID, simulation.ID, simulation.ProductID, simulation.Title, simulation.Description, simulation.ChannelCode, inputJSON, resultJSON).Scan)
+	return updated, mapDBError(err)
 }
 
 func (r *SimulationRepository) Delete(ctx context.Context, userID string, id string) error {
@@ -87,6 +106,7 @@ func scanSimulation(scan scannerFunc) (domain.Simulation, error) {
 		&simulation.UserID,
 		&simulation.ProductID,
 		&simulation.Title,
+		&simulation.Description,
 		&simulation.ChannelCode,
 		&inputJSON,
 		&resultJSON,

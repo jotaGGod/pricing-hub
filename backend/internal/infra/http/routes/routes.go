@@ -43,6 +43,7 @@ func Register(
 	protected.Get("/simulations", simulationHandler.List)
 	protected.Post("/simulations", simulationHandler.Create)
 	protected.Get("/simulations/:id", simulationHandler.Get)
+	protected.Put("/simulations/:id", simulationHandler.Update)
 	protected.Delete("/simulations/:id", simulationHandler.Delete)
 
 	protected.Get("/preferences", preferenceHandler.Get)
