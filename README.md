@@ -1,37 +1,37 @@
 # pricing-hub
 
-Sistema full-stack para precificacao de produtos vendidos em e-commerce e marketplaces.
+Full-stack system for pricing products sold through e-commerce and marketplaces.
 
-O projeto ajuda vendedores a calcular preco recomendado, lucro liquido, margem real e composicao de custos por canal de venda, considerando custo do produto, impostos, ads, despesas, logistica, taxas manuais e regras de marketplace.
+The project helps sellers calculate the recommended price, net profit, actual margin, and cost composition by sales channel, considering product cost, taxes, ads, expenses, logistics, manual fees, and marketplace rules.
 
 ## Status
 
-- Ambiente de producao: https://pricing-hub.vercel.app
-- Frontend e backend publicados na Vercel como servicos separados.
-- Banco de dados em PostgreSQL gerenciado via Storage/Database conectado ao projeto na Vercel.
-- Migrations e seed inicial de canais sao executados automaticamente no startup do backend.
+- Production environment: https://pricing-hub.vercel.app
+- Frontend and backend deployed on Vercel as separate services.
+- PostgreSQL database managed through Storage/Database and connected to the project on Vercel.
+- Migrations and the initial channel seed are executed automatically during backend startup.
 
-## Funcionalidades
+## Features
 
-- Cadastro e login manual.
-- Login com Google OAuth preparado por variaveis de ambiente.
-- Sessao com JWT em cookies HttpOnly.
-- Alternancia entre tema escuro e claro.
-- Calculo de preco por margem desejada.
-- Analise de preco de venda informado.
-- Resultado com preco recomendado, custo total, lucro liquido, margem, markup e breakdown de custos.
-- Cadastro de produtos.
-- Salvamento de simulacoes.
-- Selecao de canais de venda:
-  - Site proprio
+- Manual registration and login.
+- Google OAuth login prepared through environment variables.
+- Session with JWT in HttpOnly cookies.
+- Toggle between dark and light themes.
+- Price calculation by desired margin.
+- Analysis of an informed sale price.
+- Result with recommended price, total cost, net profit, margin, markup, and cost breakdown.
+- Product registration.
+- Simulation saving.
+- Sales channel selection:
+  - Own website
   - Shopee
   - TikTok Shop
-  - Mercado Livre Classico
+  - Mercado Livre Classic
   - Mercado Livre Premium
   - Amazon
   - Temu
   - Shein
-  - Outro / Manual
+  - Other / Manual
 
 ## Stack
 
@@ -40,9 +40,9 @@ Backend:
 - Go
 - Fiber
 - PostgreSQL
-- Migrations SQL
-- JWT com cookies HttpOnly
-- Login manual com senha hasheada
+- SQL migrations
+- JWT with HttpOnly cookies
+- Manual login with hashed password
 - Google OAuth
 
 Frontend:
@@ -54,13 +54,13 @@ Frontend:
 - Zod
 - Fetch wrapper
 
-Infra:
+Infrastructure:
 
-- Docker Compose para desenvolvimento local
-- Vercel para producao
-- PostgreSQL gerenciado em producao
+- Docker Compose for local development
+- Vercel for production
+- Managed PostgreSQL in production
 
-## Estrutura
+## Structure
 
 ```txt
 pricing-hub/
@@ -82,78 +82,78 @@ pricing-hub/
   README.md
 ```
 
-## Arquitetura
+## Architecture
 
-O backend segue uma Clean Architecture simples, sem criar camadas desnecessarias.
+The backend follows a simple Clean Architecture approach, without creating unnecessary layers.
 
 ### Domain
 
-Fica em `backend/internal/domain`.
+Located in `backend/internal/domain`.
 
-Responsabilidades:
+Responsibilities:
 
-- Entidades de dominio.
-- Tipos de dominio.
-- Interfaces de repositorio.
-- Regras de precificacao.
+- Domain entities.
+- Domain types.
+- Repository interfaces.
+- Pricing rules.
 - `PricingService`.
 
-Essa camada nao depende de Fiber, PostgreSQL, JSON HTTP ou detalhes de infraestrutura.
+This layer does not depend on Fiber, PostgreSQL, HTTP JSON, or infrastructure details.
 
 ### Infra
 
-Fica em `backend/internal/infra`.
+Located in `backend/internal/infra`.
 
-Responsabilidades:
+Responsibilities:
 
-- Configuracao por variaveis de ambiente.
-- Conexao com PostgreSQL.
+- Configuration through environment variables.
+- PostgreSQL connection.
 - Migrations.
-- Repositorios concretos.
-- Handlers HTTP.
+- Concrete repositories.
+- HTTP handlers.
 - Middlewares.
-- Rotas Fiber.
+- Fiber routes.
 - Auth/JWT.
 - Google OAuth.
-- Seed inicial de canais.
+- Initial channel seed.
 
 ### Frontend
 
-Fica em `frontend/src`.
+Located in `frontend/src`.
 
-Organizacao principal:
+Main organization:
 
-- `components`: componentes reutilizaveis de interface.
-- `features`: telas e fluxos por dominio funcional.
-- `services`: chamadas HTTP para o backend.
-- `types`: tipos compartilhados do frontend.
-- `utils`: formatacao, conversao e validacoes.
-- `routes`: configuracao de rotas protegidas.
+- `components`: reusable UI components.
+- `features`: screens and flows by functional domain.
+- `services`: HTTP calls to the backend.
+- `types`: shared frontend types.
+- `utils`: formatting, conversion, and validations.
+- `routes`: protected route configuration.
 
-## Regra de precificacao
+## Pricing Rule
 
-O calculo financeiro fica centralizado no `PricingService`, em:
+The financial calculation is centralized in `PricingService`, at:
 
 ```txt
 backend/internal/domain/pricing_service.go
 ```
 
-Principios usados:
+Principles used:
 
-- Dinheiro em centavos com `int64`.
-- Percentuais em basis points.
+- Money in cents with `int64`.
+- Percentages in basis points.
 - 4% = `400`.
 - 14% = `1400`.
 - 20% = `2000`.
-- Nenhuma regra financeira espalhada em handler HTTP.
-- Taxas de canais vindas do banco/seed, nao hardcoded em handlers.
-- Busca binaria para encontrar preco minimo quando a meta e margem desejada.
+- No financial rule is spread across HTTP handlers.
+- Channel fees come from the database/seed, not hardcoded in handlers.
+- Binary search to find the minimum price when the target is a desired margin.
 
-## Banco de dados
+## Database
 
-O projeto usa PostgreSQL.
+The project uses PostgreSQL.
 
-Tabelas principais:
+Main tables:
 
 - `users`
 - `sessions`
@@ -162,31 +162,31 @@ Tabelas principais:
 - `products`
 - `pricing_simulations`
 
-As migrations ficam em:
+Migrations are located at:
 
 ```txt
 backend/internal/infra/migrations
 ```
 
-O seed inicial de canais fica em:
+The initial channel seed is located at:
 
 ```txt
 backend/internal/infra/seed/channels.json
 ```
 
-As taxas de marketplace sao referencias iniciais editaveis. Elas devem ser conferidas nos portais oficiais antes de uso operacional.
+Marketplace fees are editable initial references. They must be checked in the official portals before operational use.
 
-## Variaveis de ambiente
+## Environment Variables
 
 ### Backend
 
-Arquivo local de exemplo:
+Local example file:
 
 ```txt
 backend/.env.example
 ```
 
-Variaveis principais:
+Main variables:
 
 ```txt
 DATABASE_URL=
@@ -200,16 +200,16 @@ GOOGLE_CLIENT_SECRET=
 GOOGLE_REDIRECT_URL=
 ```
 
-Em producao, configurar na Vercel:
+In production, configure on Vercel:
 
 ```txt
 DATABASE_URL=postgres://...
 FRONTEND_URL=https://pricing-hub.vercel.app
-JWT_ACCESS_SECRET=um-segredo-forte
+JWT_ACCESS_SECRET=a-strong-secret
 COOKIE_SECURE=true
 ```
 
-Para Google OAuth:
+For Google OAuth:
 
 ```txt
 GOOGLE_CLIENT_ID=
@@ -219,35 +219,35 @@ GOOGLE_REDIRECT_URL=https://pricing-hub.vercel.app/api/auth/google/callback
 
 ### Frontend
 
-Arquivo local de exemplo:
+Local example file:
 
 ```txt
 frontend/.env.example
 ```
 
-Variavel opcional:
+Optional variable:
 
 ```txt
 VITE_API_URL=
 ```
 
-Em producao, o frontend pode usar `/api`, porque o `vercel.json` faz o rewrite para o backend.
+In production, the frontend can use `/api`, because `vercel.json` rewrites requests to the backend.
 
-## Desenvolvimento local com Docker
+## Local Development with Docker
 
 ```bash
 docker compose up --build
 ```
 
-Servicos locais:
+Local services:
 
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8080
 - PostgreSQL: localhost:5432
 
-O Docker Compose sobe o PostgreSQL apenas para desenvolvimento local. Em producao, o banco precisa ser um PostgreSQL gerenciado configurado na Vercel.
+Docker Compose starts PostgreSQL only for local development. In production, the database must be a managed PostgreSQL configured on Vercel.
 
-## Desenvolvimento local sem Docker
+## Local Development without Docker
 
 Backend:
 
@@ -267,7 +267,7 @@ npm install
 npm run dev
 ```
 
-## Testes e build
+## Tests and Build
 
 Backend:
 
@@ -287,28 +287,28 @@ npm run build
 
 ## Deploy
 
-O deploy usa `vercel.json` na raiz do projeto.
+The deployment uses `vercel.json` at the project root.
 
-Configuracao principal:
+Main configuration:
 
-- `frontend`: servico Vite apontando para `frontend`.
-- `backend`: servico Go apontando para `backend/main.go`.
-- `/api/*`: encaminhado para o backend.
-- `/*`: encaminhado para o frontend.
+- `frontend`: Vite service pointing to `frontend`.
+- `backend`: Go service pointing to `backend/main.go`.
+- `/api/*`: forwarded to the backend.
+- `/*`: forwarded to the frontend.
 
-Arquivo:
+File:
 
 ```txt
 vercel.json
 ```
 
-Antes de redeployar, confirme que as variaveis de ambiente do backend estao configuradas na Vercel, principalmente `DATABASE_URL`, `JWT_ACCESS_SECRET`, `FRONTEND_URL` e `COOKIE_SECURE`.
+Before redeploying, confirm that the backend environment variables are configured on Vercel, especially `DATABASE_URL`, `JWT_ACCESS_SECRET`, `FRONTEND_URL`, and `COOKIE_SECURE`.
 
-## Observacoes operacionais
+## Operational Notes
 
-- A Vercel nao sobe o PostgreSQL definido no `docker-compose.yml`.
-- `docker-compose.yml` e apenas para ambiente local.
-- Em producao, o backend precisa de um `DATABASE_URL` apontando para um banco PostgreSQL real.
-- O backend executa migrations e seed automaticamente ao iniciar.
-- Se o backend falhar no deploy com erro de conexao em `127.0.0.1:5432`, significa que `DATABASE_URL` nao foi configurado corretamente em producao.
-- Ao mudar variaveis de ambiente na Vercel, faca um novo deploy para aplicar.
+- Vercel does not start the PostgreSQL defined in `docker-compose.yml`.
+- `docker-compose.yml` is only for the local environment.
+- In production, the backend needs a `DATABASE_URL` pointing to a real PostgreSQL database.
+- The backend runs migrations and seed automatically on startup.
+- If the backend fails during deploy with a connection error to `127.0.0.1:5432`, it means `DATABASE_URL` was not configured correctly in production.
+- When changing environment variables on Vercel, create a new deployment to apply them.
