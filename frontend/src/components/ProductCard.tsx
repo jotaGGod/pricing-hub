@@ -12,7 +12,7 @@ type ProductCardProps = {
 
 export function ProductCard({ value, channels, onChange, onSave, saving }: ProductCardProps) {
   return (
-    <section className="glass-card p-4">
+    <section className="glass-card p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-sm font-black uppercase tracking-normal text-slate-500 dark:text-slate-300">Produto</h2>
         <button type="button" className="btn-secondary h-9 px-3" onClick={onSave} disabled={saving}>
@@ -22,7 +22,7 @@ export function ProductCard({ value, channels, onChange, onSave, saving }: Produ
       </div>
       <div className="grid gap-3 md:grid-cols-2">
         <label className="block space-y-2 md:col-span-2">
-          <span className="field-label">Titulo</span>
+          <span className="field-label">Título</span>
           <input
             className="input-base"
             value={value.product_title}
@@ -31,7 +31,7 @@ export function ProductCard({ value, channels, onChange, onSave, saving }: Produ
           />
         </label>
         <MoneyInput
-          label="Custo"
+          label="Custo do produto"
           value={value.product_cost_cents}
           onChange={(product_cost_cents) => onChange({ ...value, product_cost_cents })}
         />
@@ -49,7 +49,7 @@ export function ProductCard({ value, channels, onChange, onSave, saving }: Produ
           />
         </label>
         <label className="block space-y-2 md:col-span-2">
-          <span className="field-label">Canal padrao</span>
+          <span className="field-label">Canal padrão</span>
           <select
             className="input-base"
             value={value.channel_code}

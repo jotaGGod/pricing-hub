@@ -30,7 +30,7 @@ export function SimulationsPage() {
         setSimulations(items);
         setError(null);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : "Falha ao carregar simulacoes"));
+      .catch((err) => setError(err instanceof Error ? err.message : "Falha ao carregar simulações"));
   }
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export function SimulationsPage() {
     const input = simulationInput(editing);
     const result = simulationResult(editing);
     if (!id || !input || !result) {
-      setError("Simulacao sem dados completos para editar.");
+      setError("Simulação sem dados completos para editar.");
       return;
     }
 
@@ -67,7 +67,7 @@ export function SimulationsPage() {
     setError(null);
     try {
       await updateSimulation(id, {
-        title: editTitle.trim() || "Simulacao",
+        title: editTitle.trim() || "Simulação",
         description: editDescription.trim() || null,
         channel_code: simulationChannelCode(editing) || nextInput.channel_code,
         input: nextInput,
@@ -76,7 +76,7 @@ export function SimulationsPage() {
       setEditing(null);
       reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao editar simulacao");
+      setError(err instanceof Error ? err.message : "Falha ao editar simulação");
     } finally {
       setSavingEdit(false);
     }
@@ -85,8 +85,8 @@ export function SimulationsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-3xl font-black">Simulacoes</h1>
-        <p className="mt-2 text-slate-500 dark:text-slate-400">Historico salvo</p>
+        <h1 className="text-3xl font-black">Simulações</h1>
+        <p className="mt-2 text-slate-500 dark:text-slate-400">Histórico salvo</p>
       </div>
 
       {error ? <p className="text-sm font-bold text-orange-500">{error}</p> : null}
@@ -127,7 +127,7 @@ export function SimulationsPage() {
               </div>
               {result ? (
                 <div className="grid grid-cols-2 gap-3">
-                  <Metric label="Preco" value={formatBRL(result.recommended_sale_price_cents)} />
+                  <Metric label="Preço" value={formatBRL(result.recommended_sale_price_cents)} />
                   <Metric label="Margem" value={formatBPS(result.margin_bps)} />
                   <Metric label="Lucro" value={formatBRL(result.net_profit_cents)} />
                   <Metric label="Custo" value={formatBRL(result.total_cost_cents)} />
@@ -142,14 +142,14 @@ export function SimulationsPage() {
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/70 px-4 py-8 backdrop-blur-sm">
           <div className="glass-card w-full max-w-lg p-5">
             <div className="mb-4 flex items-center justify-between gap-3">
-              <h2 className="text-base font-black">Editar simulacao</h2>
+              <h2 className="text-base font-black">Editar simulação</h2>
               <button type="button" className="icon-btn" title="Fechar" onClick={() => setEditing(null)}>
                 <X size={16} />
               </button>
             </div>
             <div className="space-y-4">
               <label className="block space-y-2">
-                <span className="field-label">Nome da simulacao</span>
+                <span className="field-label">Nome da simulação</span>
                 <input
                   className="input-base"
                   value={editTitle}
@@ -158,7 +158,7 @@ export function SimulationsPage() {
                 />
               </label>
               <label className="block space-y-2">
-                <span className="field-label">Descricao da simulacao</span>
+                <span className="field-label">Descrição da simulação</span>
                 <input
                   className="input-base"
                   value={editDescription}
@@ -167,7 +167,7 @@ export function SimulationsPage() {
                 />
               </label>
               <label className="block space-y-2">
-                <span className="field-label">Titulo do produto</span>
+                <span className="field-label">Título do produto</span>
                 <input
                   className="input-base"
                   value={editProductTitle}

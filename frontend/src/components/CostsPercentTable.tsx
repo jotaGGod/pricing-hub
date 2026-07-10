@@ -11,7 +11,7 @@ export function CostsPercentTable({ value, onChange }: CostsPercentTableProps) {
   const logisticIsFixed = value.logistic_cost.type === "fixed_amount";
 
   return (
-    <section className="glass-card p-4">
+    <section className="glass-card p-3 sm:p-4">
       <h2 className="mb-3 text-sm font-black uppercase tracking-normal text-slate-500 dark:text-slate-300">
         Custos Percentuais
       </h2>
@@ -38,7 +38,7 @@ export function CostsPercentTable({ value, onChange }: CostsPercentTableProps) {
           onChange={(seller_discount_bps) => onChange({ ...value, seller_discount_bps })}
         />
         <label className="block space-y-2">
-          <span className="field-label">Logistica</span>
+          <span className="field-label">Logística</span>
           <select
             className="input-base"
             value={value.logistic_cost.type}
@@ -58,7 +58,7 @@ export function CostsPercentTable({ value, onChange }: CostsPercentTableProps) {
         </label>
         {logisticIsFixed ? (
           <MoneyInput
-            label="Valor logistica"
+            label="Valor da logística"
             value={value.logistic_cost.amount_cents}
             onChange={(amount_cents) =>
               onChange({ ...value, logistic_cost: { ...value.logistic_cost, amount_cents } })
@@ -66,7 +66,7 @@ export function CostsPercentTable({ value, onChange }: CostsPercentTableProps) {
           />
         ) : (
           <PercentInput
-            label="Percentual logistica"
+            label="Percentual da logística"
             value={value.logistic_cost.bps}
             onChange={(bps) => onChange({ ...value, logistic_cost: { ...value.logistic_cost, bps } })}
           />

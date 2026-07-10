@@ -37,15 +37,15 @@ export function ProductsPage() {
     <div className="space-y-5">
       <div>
         <h1 className="text-3xl font-black">Produtos</h1>
-        <p className="mt-2 text-slate-500 dark:text-slate-400">Catalogo salvo</p>
+        <p className="mt-2 text-slate-500 dark:text-slate-400">Catálogo salvo</p>
       </div>
 
       <form className="glass-card grid gap-4 p-5 md:grid-cols-[1fr_220px_auto]" onSubmit={submit}>
         <label className="block space-y-2">
-          <span className="field-label">Titulo</span>
+          <span className="field-label">Título</span>
           <input className="input-base" value={title} onChange={(event) => setTitle(event.target.value)} />
         </label>
-        <MoneyInput label="Custo" value={cost} onChange={setCost} />
+        <MoneyInput label="Custo do produto" value={cost} onChange={setCost} />
         <button type="submit" className="btn-primary self-end">
           <Plus size={17} />
           Adicionar

@@ -18,7 +18,7 @@ export function ResultsPanel({ result, loading, error }: ResultsPanelProps) {
   const StatusIcon = result?.status === "loss" ? AlertTriangle : result?.status === "warning" ? TrendingUp : CheckCircle2;
 
   return (
-    <section className="glass-card p-4">
+    <section className="glass-card p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-sm font-black uppercase tracking-normal text-slate-500 dark:text-slate-300">Resultados</h2>
         {loading ? <span className="text-xs font-bold text-slate-400">calculando...</span> : null}
@@ -38,19 +38,19 @@ export function ResultsPanel({ result, loading, error }: ResultsPanelProps) {
           <div className="rounded-lg border border-slate-900/10 bg-slate-950 p-4 text-white shadow-glow dark:border-mint/10 dark:bg-black/30">
             <div className="mb-2 flex items-center gap-2">
               <StatusIcon size={20} className={statusClass} />
-              <span className="text-sm font-bold text-slate-300">Preco recomendado</span>
+              <span className="text-sm font-bold text-slate-300">Preço recomendado</span>
             </div>
             <p className="text-3xl font-black text-mint sm:text-4xl">{formatBRL(result.recommended_sale_price_cents)}</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Metric label="Lucro liquido" value={formatBRL(result.net_profit_cents)} tone={statusClass} />
+            <Metric label="Lucro líquido" value={formatBRL(result.net_profit_cents)} tone={statusClass} />
             <Metric label="Margem real" value={formatBPS(result.margin_bps)} />
             <Metric label="Custo total" value={formatBRL(result.total_cost_cents)} />
             <Metric label="Markup" value={formatBPS(result.markup_bps)} />
           </div>
           <div className="rounded-md border border-slate-200 bg-white/60 dark:border-line dark:bg-slate-950/20">
             <div className="border-b border-slate-100 px-3 py-2 text-xs font-black uppercase tracking-normal text-slate-400 dark:border-line">
-              Composicao do preco
+              Composição do preço
             </div>
             {result.breakdown.map((item) => (
               <div

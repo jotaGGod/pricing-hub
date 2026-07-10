@@ -24,6 +24,9 @@ func (s *PricingService) Calculate(input PricingInput, channel Channel) (Pricing
 	if err := validatePricingInput(input); err != nil {
 		return PricingResult{}, err
 	}
+	if input.ProductCostCents == 0 {
+		return zeroPricingResult(), nil
+	}
 
 	switch input.Mode {
 	case PricingModeAnalyzeSalePrice:
@@ -38,6 +41,15 @@ func (s *PricingService) Calculate(input PricingInput, channel Channel) (Pricing
 		return s.calculateTargetMargin(input, channel, *input.DesiredMarginBPS)
 	default:
 		return PricingResult{}, ErrInvalidInput
+	}
+}
+
+func zeroPricingResult() PricingResult {
+	return PricingResult{
+		Status: PricingStatusProfit,
+		Breakdown: []PricingBreakdownItem{
+			{Label: "Custo do produto", AmountCents: 0},
+		},
 	}
 }
 
@@ -205,7 +217,7 @@ func (s *PricingService) minimumCostFloor(input PricingInput, channel Channel) i
 func (s *PricingService) calculateChannelFee(channel Channel, feeBaseCents int64, options ChannelOptions) channelFeeResult {
 	commissionBPS := channel.FeeRules.DefaultCommissionBPS
 	fixedFeeCents := channel.FeeRules.FixedFeeCents
-	label := "Comissao do canal"
+	label := "Comissão do canal"
 
 	switch channel.FeeRules.Strategy {
 	case FeeStrategyTiered:
@@ -219,7 +231,7 @@ func (s *PricingService) calculateChannelFee(channel Channel, feeBaseCents int64
 			commissionBPS = tier.CommissionBPS
 			fixedFeeCents = tier.FixedFeeCents
 			if strings.TrimSpace(tier.Label) != "" {
-				label = "Comissao do canal - " + tier.Label
+				label = "Comissão do canal - " + tier.Label
 			}
 			break
 		}
@@ -230,7 +242,7 @@ func (s *PricingService) calculateChannelFee(channel Channel, feeBaseCents int64
 			if selected != "" && category.Code == selected {
 				commissionBPS = category.CommissionBPS
 				fixedFeeCents = category.FixedFeeCents
-				label = "Comissao do canal - " + category.Name
+				label = "Comissão do canal - " + category.Name
 				foundCategory = true
 				break
 			}
@@ -240,7 +252,7 @@ func (s *PricingService) calculateChannelFee(channel Channel, feeBaseCents int64
 				if category.Code == "default" || category.Code == "demais" {
 					commissionBPS = category.CommissionBPS
 					fixedFeeCents = category.FixedFeeCents
-					label = "Comissao do canal - " + category.Name
+					label = "Comissão do canal - " + category.Name
 					break
 				}
 			}
@@ -331,10 +343,10 @@ func calculateLogisticCost(cost *VariableCost, feeBaseCents int64) (int64, int64
 	}
 	switch cost.Type {
 	case CostTypeFixedAmount:
-		return cost.AmountCents, 0, []PricingBreakdownItem{{Label: "Logistica", AmountCents: cost.AmountCents}}
+		return cost.AmountCents, 0, []PricingBreakdownItem{{Label: "Logística", AmountCents: cost.AmountCents}}
 	case CostTypePercentage:
 		amount := percentCeil(feeBaseCents, cost.BPS)
-		return 0, amount, []PricingBreakdownItem{{Label: "Logistica", AmountCents: amount, BPS: ptrBPS(cost.BPS)}}
+		return 0, amount, []PricingBreakdownItem{{Label: "Logística", AmountCents: amount, BPS: ptrBPS(cost.BPS)}}
 	default:
 		return 0, 0, nil
 	}
