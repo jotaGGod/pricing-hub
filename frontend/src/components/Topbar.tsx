@@ -4,9 +4,9 @@ import { useAuth } from "../features/auth/AuthContext";
 import { useTheme } from "../features/settings/ThemeContext";
 
 const mobileItems = [
-  { to: "/pricing", label: "Preco" },
+  { to: "/pricing", label: "Preço" },
   { to: "/products", label: "Produtos" },
-  { to: "/simulations", label: "Sims" },
+  { to: "/simulations", label: "Simulações" },
   { to: "/settings", label: "Ajustes" }
 ];
 

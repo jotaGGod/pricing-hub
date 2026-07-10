@@ -1,9 +1,9 @@
 [
   {
     "code": "site",
-    "name": "Site proprio",
-    "description": "Venda em loja propria. Gateway e checkout devem ser adicionados manualmente.",
-    "enabled": true,
+    "name": "Loja própria",
+    "description": "Venda direta, com taxas informadas manualmente.",
+    "enabled": false,
     "fee_rules": {
       "strategy": "fixed",
       "default_commission_bps": 0,
@@ -15,12 +15,12 @@
       "options": []
     },
     "last_verified_at": "2026-07-09",
-    "source_note": "Taxas de gateway/checkout devem ser inseridas manualmente."
+    "source_note": "Informe manualmente as taxas do seu checkout ou gateway."
   },
   {
     "code": "shopee",
     "name": "Shopee",
-    "description": "Comissao e tarifa fixa por faixa de preco.",
+    "description": "Comissão e tarifa por faixa de preço.",
     "enabled": true,
     "fee_rules": {
       "strategy": "tiered",
@@ -29,7 +29,7 @@
       "min_commission_cents": 0,
       "manual_adjustable": true,
       "tiers": [
-        { "label": "ate R$79,99", "min_price_cents": 0, "max_price_cents": 7999, "commission_bps": 2000, "fixed_fee_cents": 400 },
+        { "label": "até R$79,99", "min_price_cents": 0, "max_price_cents": 7999, "commission_bps": 2000, "fixed_fee_cents": 400 },
         { "label": "R$80 a R$99,99", "min_price_cents": 8000, "max_price_cents": 9999, "commission_bps": 1400, "fixed_fee_cents": 1600 },
         { "label": "R$100 a R$199,99", "min_price_cents": 10000, "max_price_cents": 19999, "commission_bps": 1400, "fixed_fee_cents": 2000 },
         { "label": "R$200 a R$499,99", "min_price_cents": 20000, "max_price_cents": 49999, "commission_bps": 1400, "fixed_fee_cents": 2600 },
@@ -39,12 +39,12 @@
       "options": []
     },
     "last_verified_at": "2026-07-09",
-    "source_note": "Seed inicial baseada na referencia visual do projeto e em fontes publicas recentes. Confirmar no Seller Center da Shopee antes de uso operacional."
+    "source_note": "Taxas baseadas em informações públicas. Confira no Seller Center antes de usar."
   },
   {
     "code": "tiktok_shop",
     "name": "TikTok Shop",
-    "description": "Comissao oficial por faixa e programa de frete opcional.",
+    "description": "Comissão por faixa e programa de frete opcional.",
     "enabled": true,
     "fee_rules": {
       "strategy": "tiered",
@@ -70,12 +70,12 @@
       ]
     },
     "last_verified_at": "2026-07-09",
-    "source_note": "Regra inicial editavel. Confirmar no portal do TikTok Shop antes de uso operacional."
+    "source_note": "Taxas baseadas em informações públicas. Confira no portal do TikTok Shop antes de usar."
   },
   {
     "code": "mercado_livre_classico",
     "name": "Mercado Livre Classico",
-    "description": "Default conservador ajustavel por categoria e tipo de anuncio.",
+    "description": "Taxa editável por categoria e tipo de anúncio.",
     "enabled": true,
     "fee_rules": {
       "strategy": "fixed",
@@ -88,12 +88,12 @@
       "options": []
     },
     "last_verified_at": "2026-07-09",
-    "source_note": "Taxa varia por categoria, tipo de anuncio e regras do Mercado Livre. Valor default e apenas placeholder conservador."
+    "source_note": "Taxas variam por categoria e tipo de anúncio. Confira no Mercado Livre antes de usar."
   },
   {
     "code": "mercado_livre_premium",
     "name": "Mercado Livre Premium",
-    "description": "Default conservador ajustavel por categoria e tipo de anuncio.",
+    "description": "Taxa editável por categoria e tipo de anúncio.",
     "enabled": true,
     "fee_rules": {
       "strategy": "fixed",
@@ -106,12 +106,12 @@
       "options": []
     },
     "last_verified_at": "2026-07-09",
-    "source_note": "Taxa varia por categoria, tipo de anuncio e regras do Mercado Livre. Valor default e apenas placeholder conservador."
+    "source_note": "Taxas variam por categoria e tipo de anúncio. Confira no Mercado Livre antes de usar."
   },
   {
     "code": "amazon",
     "name": "Amazon",
-    "description": "Comissao por categoria, com comissao minima e plano individual opcional.",
+    "description": "Comissão por categoria, com mínimo e plano individual opcional.",
     "enabled": true,
     "fee_rules": {
       "strategy": "category",
@@ -121,12 +121,12 @@
       "manual_adjustable": true,
       "tiers": [],
       "categories": [
-        { "code": "default", "name": "Default", "commission_bps": 1500, "fixed_fee_cents": 0 },
+        { "code": "default", "name": "Geral", "commission_bps": 1500, "fixed_fee_cents": 0 },
         { "code": "comidas_bebidas", "name": "Comidas e bebidas", "commission_bps": 1000, "fixed_fee_cents": 0 },
         { "code": "cozinha", "name": "Cozinha", "commission_bps": 1200, "fixed_fee_cents": 0 },
         { "code": "casa", "name": "Casa", "commission_bps": 1200, "fixed_fee_cents": 0 },
         { "code": "beleza", "name": "Beleza", "commission_bps": 1300, "fixed_fee_cents": 0 },
-        { "code": "roupas_acessorios", "name": "Roupas e acessorios", "commission_bps": 1400, "fixed_fee_cents": 0 },
+        { "code": "roupas_acessorios", "name": "Roupas e acessórios", "commission_bps": 1400, "fixed_fee_cents": 0 },
         { "code": "livros", "name": "Livros", "commission_bps": 1500, "fixed_fee_cents": 0 },
         { "code": "demais", "name": "Demais categorias", "commission_bps": 1500, "fixed_fee_cents": 0 }
       ],
@@ -143,12 +143,12 @@
       ]
     },
     "last_verified_at": "2026-07-09",
-    "source_note": "Plano profissional mensal nao entra automaticamente no calculo unitario; rateie manualmente se necessario. Conferir valores no Seller Central."
+    "source_note": "Taxas variam por categoria e plano. Confira no Seller Central antes de usar."
   },
   {
     "code": "temu",
     "name": "Temu",
-    "description": "Default sem comissao, sujeito a contrato da conta.",
+    "description": "Canal sujeito às condições da sua conta.",
     "enabled": true,
     "fee_rules": {
       "strategy": "fixed",
@@ -161,12 +161,12 @@
       "options": []
     },
     "last_verified_at": "2026-07-09",
-    "source_note": "Pagina de seller local informa 0% commission/no hidden fees. Confirmar no contrato da conta."
+    "source_note": "Taxas podem variar por contrato da conta. Confira antes de usar."
   },
   {
     "code": "shein",
     "name": "Shein",
-    "description": "Comissao default editavel.",
+    "description": "Comissão editável.",
     "enabled": true,
     "fee_rules": {
       "strategy": "fixed",
@@ -179,12 +179,12 @@
       "options": []
     },
     "last_verified_at": "2026-07-09",
-    "source_note": "Politica publica indica comissao de 16%. Confirmar no portal de seller."
+    "source_note": "Taxa baseada em informações públicas. Confira no portal do seller antes de usar."
   },
   {
     "code": "manual",
     "name": "Outro / Manual",
-    "description": "Canal manual para custos editaveis.",
+    "description": "Canal livre para informar as próprias taxas.",
     "enabled": true,
     "fee_rules": {
       "strategy": "fixed",
@@ -197,6 +197,6 @@
       "options": []
     },
     "last_verified_at": "2026-07-09",
-    "source_note": "Todos os custos devem ser editados manualmente pelo usuario."
+    "source_note": "Informe manualmente as taxas e custos desse canal."
   }
 ]

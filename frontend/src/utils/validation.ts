@@ -46,7 +46,7 @@ export const pricingFormSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["sale_price_cents"],
-        message: "Informe o preco de venda"
+        message: "Informe o preço de venda"
       });
     }
   });

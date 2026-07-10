@@ -3,9 +3,9 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
 
 const navItems = [
-  { to: "/pricing", label: "Precificadora", icon: Calculator },
+  { to: "/pricing", label: "Precificador", icon: Calculator },
   { to: "/products", label: "Produtos", icon: Package },
-  { to: "/simulations", label: "Simulacoes", icon: History },
+  { to: "/simulations", label: "Simulações", icon: History },
   { to: "/settings", label: "Ajustes", icon: Settings }
 ];
 

@@ -54,7 +54,7 @@ export function ManualCostsEditor({ value, onChange }: ManualCostsEditorProps) {
   }
 
   return (
-    <section className="glass-card p-4">
+    <section className="glass-card p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="text-sm font-black uppercase tracking-normal text-slate-500 dark:text-slate-300">Custos Manuais</h2>
         <button type="button" className="icon-btn" onClick={add} title="Adicionar custo">
