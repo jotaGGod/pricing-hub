@@ -170,6 +170,8 @@ export type Simulation = {
   id?: string;
   Title?: string;
   title?: string;
+  Description?: string | null;
+  description?: string | null;
   ChannelCode?: string;
   channel_code?: string;
   Input?: PricingInput;

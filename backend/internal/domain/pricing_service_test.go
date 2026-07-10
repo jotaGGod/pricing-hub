@@ -128,6 +128,27 @@ func TestPricingServiceTargetMarginBinarySearch(t *testing.T) {
 	}
 }
 
+func TestPricingServiceZeroProductCostReturnsZeroResult(t *testing.T) {
+	service := NewPricingService()
+	result, err := service.Calculate(PricingInput{
+		ProductCostCents: 0,
+		DesiredMarginBPS: bpsPtr(3000),
+		TaxBPS:           400,
+		ChannelCode:      "shopee",
+		Mode:             PricingModeTargetMargin,
+	}, shopeeChannel())
+	if err != nil {
+		t.Fatalf("Calculate() error = %v", err)
+	}
+	if result.RecommendedSalePriceCents != 0 ||
+		result.SalePriceCents != 0 ||
+		result.TotalCostCents != 0 ||
+		result.NetProfitCents != 0 ||
+		result.MarginBPS != 0 {
+		t.Fatalf("expected zero result, got: %+v", result)
+	}
+}
+
 func TestPricingServiceLossScenario(t *testing.T) {
 	service := NewPricingService()
 	result, err := service.Calculate(PricingInput{

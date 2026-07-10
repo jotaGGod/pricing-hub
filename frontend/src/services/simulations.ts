@@ -4,6 +4,7 @@ import type { PricingInput, PricingResult, Simulation } from "../types";
 export type SimulationPayload = {
   product_id?: string | null;
   title: string;
+  description?: string | null;
   channel_code: string;
   input: PricingInput;
   result: PricingResult;
@@ -20,6 +21,13 @@ export function createSimulation(payload: SimulationPayload) {
   });
 }
 
+export function updateSimulation(id: string, payload: SimulationPayload) {
+  return apiFetch<Simulation>(`/simulations/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload)
+  });
+}
+
 export function deleteSimulation(id: string) {
   return apiFetch<void>(`/simulations/${id}`, { method: "DELETE" });
 }
@@ -32,8 +40,20 @@ export function simulationTitle(simulation: Simulation) {
   return simulation.Title ?? simulation.title ?? "";
 }
 
+export function simulationDescription(simulation: Simulation) {
+  return simulation.Description ?? simulation.description ?? "";
+}
+
 export function simulationResult(simulation: Simulation) {
   return simulation.Result ?? simulation.result;
+}
+
+export function simulationInput(simulation: Simulation) {
+  return simulation.Input ?? simulation.input;
+}
+
+export function simulationChannelCode(simulation: Simulation) {
+  return simulation.ChannelCode ?? simulation.channel_code ?? "";
 }
 
 export function simulationCreatedAt(simulation: Simulation) {
