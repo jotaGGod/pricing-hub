@@ -54,9 +54,9 @@ export function ManualCostsEditor({ value, onChange }: ManualCostsEditorProps) {
   }
 
   return (
-    <section className="glass-card p-5">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-base font-black">Custos Manuais</h2>
+    <section className="glass-card p-4">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h2 className="text-sm font-black uppercase tracking-normal text-slate-500 dark:text-slate-300">Custos Manuais</h2>
         <button type="button" className="icon-btn" onClick={add} title="Adicionar custo">
           <Plus size={18} />
         </button>
@@ -64,14 +64,14 @@ export function ManualCostsEditor({ value, onChange }: ManualCostsEditorProps) {
       <div className="space-y-3">
         {value.map((cost, index) => (
           <div key={itemKeysRef.current[index]} className="rounded-md border border-slate-200 p-3 dark:border-line">
-            <div className="mb-3 flex items-center gap-2">
+            <div className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_92px_auto_40px] sm:items-center">
               <input
                 className="input-base h-10"
                 value={cost.name}
                 onChange={(event) => update(index, { ...cost, name: event.target.value })}
               />
               <select
-                className="input-base h-10 max-w-36"
+                className="input-base h-10"
                 value={cost.type}
                 onChange={(event) => update(index, { ...cost, type: event.target.value as ManualCost["type"] })}
               >

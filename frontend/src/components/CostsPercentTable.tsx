@@ -11,9 +11,11 @@ export function CostsPercentTable({ value, onChange }: CostsPercentTableProps) {
   const logisticIsFixed = value.logistic_cost.type === "fixed_amount";
 
   return (
-    <section className="glass-card p-5">
-      <h2 className="mb-4 text-base font-black">Custos Percentuais</h2>
-      <div className="grid gap-4 md:grid-cols-2">
+    <section className="glass-card p-4">
+      <h2 className="mb-3 text-sm font-black uppercase tracking-normal text-slate-500 dark:text-slate-300">
+        Custos Percentuais
+      </h2>
+      <div className="grid gap-3 md:grid-cols-2">
         <PercentInput
           label="Impostos"
           value={value.tax_bps}

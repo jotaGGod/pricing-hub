@@ -7,6 +7,7 @@ type Simulation struct {
 	UserID      string
 	ProductID   *string
 	Title       string
+	Description *string
 	ChannelCode string
 	Input       PricingInput
 	Result      PricingResult
