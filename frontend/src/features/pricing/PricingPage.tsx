@@ -1,4 +1,4 @@
-import { Copy, FileText, FolderOpen, Save } from "lucide-react";
+import { Copy, Eraser, FileText, FolderOpen, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChannelSelector } from "../../components/ChannelSelector";
@@ -44,24 +44,38 @@ const initialPricingInput: PricingInput = {
 
 const pricingDraftStorageKey = "pricing-hub:pricing-draft:v1";
 
+function createInitialPricingInput(): PricingInput {
+  return {
+    ...initialPricingInput,
+    channel_options: {
+      ...initialPricingInput.channel_options,
+      enabled_options: {}
+    },
+    logistic_cost: {
+      ...initialPricingInput.logistic_cost
+    },
+    manual_costs: []
+  };
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function readPricingDraft() {
   if (typeof window === "undefined") {
-    return initialPricingInput;
+    return createInitialPricingInput();
   }
 
   try {
     const rawDraft = window.localStorage.getItem(pricingDraftStorageKey);
     if (!rawDraft) {
-      return initialPricingInput;
+      return createInitialPricingInput();
     }
 
     const parsedDraft: unknown = JSON.parse(rawDraft);
     if (!isRecord(parsedDraft)) {
-      return initialPricingInput;
+      return createInitialPricingInput();
     }
 
     const channelOptions = isRecord(parsedDraft.channel_options) ? parsedDraft.channel_options : {};
@@ -80,9 +94,9 @@ function readPricingDraft() {
       }
     };
     const parsed = pricingFormSchema.safeParse(draft);
-    return parsed.success ? parsed.data : initialPricingInput;
+    return parsed.success ? parsed.data : createInitialPricingInput();
   } catch {
-    return initialPricingInput;
+    return createInitialPricingInput();
   }
 }
 
@@ -250,6 +264,14 @@ export function PricingPage() {
     }
   }
 
+  function clearPricingForm() {
+    window.localStorage.removeItem(pricingDraftStorageKey);
+    setForm(createInitialPricingInput());
+    setResult(zeroPricingResult());
+    setError(null);
+    setNotice(null);
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -273,6 +295,10 @@ export function PricingPage() {
           >
             <Copy size={17} />
             Duplicar
+          </button>
+          <button type="button" className="btn-secondary" onClick={clearPricingForm}>
+            <Eraser size={17} />
+            Limpar campos
           </button>
           <button type="button" className="btn-primary" onClick={saveSimulation} disabled={savingSimulation}>
             <Save size={17} />
@@ -311,7 +337,7 @@ export function PricingPage() {
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(300px,0.9fr)_minmax(380px,1.08fr)_minmax(340px,0.92fr)]">
         <div className="space-y-4">
-          <ProductCard value={form} channels={channels} onChange={setForm} onSave={saveProduct} saving={savingProduct} />
+          <ProductCard value={form} onChange={setForm} onSave={saveProduct} saving={savingProduct} />
           <ChannelOptionsPanel channel={selectedChannel} value={form} onChange={setForm} />
         </div>
 

@@ -1,16 +1,15 @@
 import { Save } from "lucide-react";
-import type { NormalizedChannel, PricingInput } from "../types";
+import type { PricingInput } from "../types";
 import { MoneyInput } from "./MoneyInput";
 
 type ProductCardProps = {
   value: PricingInput;
-  channels: NormalizedChannel[];
   onChange: (value: PricingInput) => void;
   onSave: () => void;
   saving: boolean;
 };
 
-export function ProductCard({ value, channels, onChange, onSave, saving }: ProductCardProps) {
+export function ProductCard({ value, onChange, onSave, saving }: ProductCardProps) {
   return (
     <section className="glass-card p-3 sm:p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -47,20 +46,6 @@ export function ProductCard({ value, channels, onChange, onSave, saving }: Produ
               })
             }
           />
-        </label>
-        <label className="block space-y-2 md:col-span-2">
-          <span className="field-label">Canal padrão</span>
-          <select
-            className="input-base"
-            value={value.channel_code}
-            onChange={(event) => onChange({ ...value, channel_code: event.target.value })}
-          >
-            {channels.map((channel) => (
-              <option key={channel.code} value={channel.code}>
-                {channel.name}
-              </option>
-            ))}
-          </select>
         </label>
       </div>
     </section>
