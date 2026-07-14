@@ -36,7 +36,7 @@ export function ChannelSelector({ channels, value, onChange }: ChannelSelectorPr
   const mobileMenu = mobileOpen
     ? createPortal(
         <div
-          className="fixed inset-0 z-[80] bg-slate-950/60 px-4 pb-4 pt-20 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-[80] bg-slate-950/65 px-3 pb-3 pt-16 backdrop-blur-md md:hidden"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) {
               setMobileOpen(false);
@@ -47,14 +47,14 @@ export function ChannelSelector({ channels, value, onChange }: ChannelSelectorPr
             role="dialog"
             aria-modal="true"
             aria-label="Selecionar canal"
-            className="mx-auto flex max-h-[calc(100dvh-6rem)] w-full max-w-md flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl dark:border-line dark:bg-panel"
+            className="mx-auto flex max-h-[calc(100dvh-5rem)] w-full max-w-md flex-col overflow-hidden rounded-[16px] border border-slate-200 bg-white shadow-2xl dark:border-line dark:bg-panel"
           >
             <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-line">
               <span className="text-sm font-black text-slate-800 dark:text-slate-100">Canais</span>
               <button
                 type="button"
                 aria-label="Fechar canais"
-                className="grid h-9 w-9 place-items-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                className="grid h-11 w-11 place-items-center rounded-[10px] text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
                 onClick={() => setMobileOpen(false)}
               >
                 <X size={18} />
@@ -82,7 +82,7 @@ export function ChannelSelector({ channels, value, onChange }: ChannelSelectorPr
     <div className="min-w-0">
       <button
         type="button"
-        className="flex h-10 w-full items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 text-sm font-black text-slate-700 transition hover:border-ember dark:border-line dark:bg-slate-950/30 dark:text-slate-100 md:hidden"
+        className="flex h-11 w-full items-center justify-between gap-3 rounded-[10px] border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-ember/60 dark:border-line dark:bg-white/[0.035] dark:text-slate-100 md:hidden"
         onClick={() => setMobileOpen((current) => !current)}
         aria-expanded={mobileOpen}
         aria-haspopup="dialog"
@@ -124,10 +124,10 @@ function ChannelButton({
       type="button"
       onClick={onClick}
       className={[
-        "flex h-9 min-w-0 items-center gap-2 rounded-md border px-3 text-sm font-bold transition md:w-auto",
+        "flex h-11 min-w-0 items-center gap-2 rounded-[10px] border px-3 text-sm font-semibold transition md:h-9 md:w-auto",
         selected
           ? "border-ember bg-ember text-white shadow-glow"
-          : "border-slate-200 bg-white text-slate-600 hover:border-ember hover:text-ember dark:border-line dark:bg-slate-950/30 dark:text-slate-300"
+          : "border-slate-200 bg-white text-slate-600 shadow-sm hover:border-ember/60 hover:text-ember dark:border-line dark:bg-white/[0.035] dark:text-slate-300"
       ].join(" ")}
     >
       <ChannelIcon code={channel.code} />

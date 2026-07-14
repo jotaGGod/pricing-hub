@@ -4,15 +4,17 @@ type PercentInputProps = {
   label: string;
   value: number;
   onChange: (value: number) => void;
+  hideLabel?: boolean;
 };
 
-export function PercentInput({ label, value, onChange }: PercentInputProps) {
+export function PercentInput({ label, value, onChange, hideLabel = false }: PercentInputProps) {
   return (
-    <label className="block space-y-2">
-      <span className="field-label">{label}</span>
+    <div className={hideLabel ? "block" : "block space-y-1.5"}>
+      {hideLabel ? null : <span className="field-label">{label}</span>}
       <div className="relative">
         <input
           className="input-base pr-10"
+          aria-label={label}
           inputMode="decimal"
           value={bpsToPercentInput(value)}
           onChange={(event) => onChange(percentToBps(event.target.value))}
@@ -21,6 +23,6 @@ export function PercentInput({ label, value, onChange }: PercentInputProps) {
           %
         </span>
       </div>
-    </label>
+    </div>
   );
 }

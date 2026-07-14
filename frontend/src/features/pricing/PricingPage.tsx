@@ -1,9 +1,7 @@
-import { Copy, Eraser, FileText, FolderOpen, Save } from "lucide-react";
+import { Copy, Eraser, FileDown, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { ChannelSelector } from "../../components/ChannelSelector";
 import { CostsPercentTable } from "../../components/CostsPercentTable";
-import { ManualCostsEditor } from "../../components/ManualCostsEditor";
 import { MoneyInput } from "../../components/MoneyInput";
 import { PercentInput } from "../../components/PercentInput";
 import { ProductCard } from "../../components/ProductCard";
@@ -12,15 +10,14 @@ import { listChannels } from "../../services/channels";
 import { createProduct } from "../../services/products";
 import { calculatePricing } from "../../services/pricing";
 import { createSimulation } from "../../services/simulations";
-import type { NormalizedChannel, PricingInput, PricingMode, PricingResult } from "../../types";
-import { formatBRL } from "../../utils/money";
+import type { NormalizedChannel, PricingInput, PricingResult } from "../../types";
 import { pricingFormSchema } from "../../utils/validation";
 
 const initialPricingInput: PricingInput = {
   product_title: "",
   product_cost_cents: 0,
-  sale_price_cents: null,
-  desired_margin_bps: 3000,
+  sale_price_cents: 0,
+  desired_margin_bps: null,
   seller_discount_bps: 0,
   channel_code: "shopee",
   channel_options: {
@@ -39,7 +36,7 @@ const initialPricingInput: PricingInput = {
     amount_cents: 0,
     bps: 0
   },
-  mode: "target_margin"
+  mode: "analyze_sale_price"
 };
 
 const pricingDraftStorageKey = "pricing-hub:pricing-draft:v1";
@@ -62,7 +59,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function readPricingDraft() {
+function readPricingDraft(): PricingInput {
   if (typeof window === "undefined") {
     return createInitialPricingInput();
   }
@@ -80,9 +77,13 @@ function readPricingDraft() {
 
     const channelOptions = isRecord(parsedDraft.channel_options) ? parsedDraft.channel_options : {};
     const logisticCost = isRecord(parsedDraft.logistic_cost) ? parsedDraft.logistic_cost : {};
+    const salePriceCents = typeof parsedDraft.sale_price_cents === "number" ? parsedDraft.sale_price_cents : 0;
     const draft = {
       ...initialPricingInput,
       ...parsedDraft,
+      sale_price_cents: salePriceCents,
+      desired_margin_bps: null,
+      mode: "analyze_sale_price",
       channel_options: {
         ...initialPricingInput.channel_options,
         ...channelOptions,
@@ -93,8 +94,24 @@ function readPricingDraft() {
         ...logisticCost
       }
     };
-    const parsed = pricingFormSchema.safeParse(draft);
-    return parsed.success ? parsed.data : createInitialPricingInput();
+    const parsed = pricingFormSchema.safeParse({
+      ...draft,
+      desired_margin_bps: 0,
+      mode: "target_margin"
+    });
+    return parsed.success
+      ? {
+          ...parsed.data,
+          sale_price_cents: parsed.data.sale_price_cents ?? 0,
+          desired_margin_bps: null,
+          logistic_cost: {
+            ...parsed.data.logistic_cost,
+            type: "fixed_amount",
+            bps: 0
+          },
+          mode: "analyze_sale_price"
+        }
+      : createInitialPricingInput();
   } catch {
     return createInitialPricingInput();
   }
@@ -143,7 +160,6 @@ function pricingChannels(channels: NormalizedChannel[]) {
 }
 
 export function PricingPage() {
-  const navigate = useNavigate();
   const [channels, setChannels] = useState<NormalizedChannel[]>([]);
   const [form, setForm] = useState<PricingInput>(() => readPricingDraft());
   const [result, setResult] = useState<PricingResult | null>(null);
@@ -179,6 +195,13 @@ export function PricingPage() {
   useEffect(() => {
     if (form.product_cost_cents <= 0) {
       setResult(zeroPricingResult());
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
+    if (!form.sale_price_cents || form.sale_price_cents <= 0) {
+      setResult(null);
       setError(null);
       setLoading(false);
       return;
@@ -273,43 +296,47 @@ export function PricingPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="space-y-3">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-normal sm:text-4xl">Precificador</h1>
-          <p className="mt-1 text-slate-500 dark:text-slate-400">Cálculo completo de precificação de produtos</p>
+          <h1 className="text-[28px] font-bold leading-tight tracking-normal sm:text-[32px]">Precificador</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Cálculo para precificação de produtos</p>
         </div>
-        <div className="no-print flex flex-wrap gap-2">
-          <button type="button" className="btn-secondary" onClick={() => navigate("/products")}>
-            <FolderOpen size={17} />
-            Meus Produtos
-          </button>
+        <div className="no-print grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
           <button type="button" className="btn-secondary" onClick={() => window.print()}>
-            <FileText size={17} />
-            PDF
+            <span className="button-icon">
+              <FileDown size={15} />
+            </span>
+            Salvar PDF
           </button>
           <button
             type="button"
             className="btn-secondary"
             onClick={() => setForm({ ...form, product_title: `${form.product_title || "Produto"} cópia` })}
           >
-            <Copy size={17} />
+            <span className="button-icon">
+              <Copy size={15} />
+            </span>
             Duplicar
           </button>
           <button type="button" className="btn-secondary" onClick={clearPricingForm}>
-            <Eraser size={17} />
+            <span className="button-icon">
+              <Eraser size={15} />
+            </span>
             Limpar campos
           </button>
           <button type="button" className="btn-primary" onClick={saveSimulation} disabled={savingSimulation}>
-            <Save size={17} />
+            <span className="button-icon">
+              <Save size={15} />
+            </span>
             Salvar
           </button>
         </div>
       </div>
 
-      <section className="glass-card p-3 sm:p-4">
-        <div className="min-w-0 space-y-3">
-          <span className="field-label block">Canal</span>
+      <section className="glass-card px-3 py-2.5">
+        <div className="min-w-0 space-y-2">
+          <span className="section-title block">Canal</span>
           <ChannelSelector
             channels={channels}
             value={form.channel_code}
@@ -330,91 +357,26 @@ export function PricingPage() {
       </section>
 
       {notice ? (
-        <div className="rounded-md border border-mint/30 bg-mint/10 px-4 py-3 text-sm font-bold text-emerald-600 dark:text-mint">
+        <div className="rounded-[10px] border border-mint/30 bg-mint/10 px-3 py-2.5 text-sm font-semibold text-emerald-700 dark:text-mint">
           {notice}
         </div>
       ) : null}
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(300px,0.9fr)_minmax(380px,1.08fr)_minmax(340px,0.92fr)]">
-        <div className="space-y-4">
+      <div className="grid items-start gap-3 xl:grid-cols-[minmax(260px,0.86fr)_minmax(350px,1.12fr)_minmax(280px,0.94fr)]">
+        <div className="space-y-3">
           <ProductCard value={form} onChange={setForm} onSave={saveProduct} saving={savingProduct} />
           <ChannelOptionsPanel channel={selectedChannel} value={form} onChange={setForm} />
         </div>
 
-        <div className="space-y-4">
-          <PricingModeCard value={form} result={result} onChange={setForm} />
+        <div className="space-y-3">
           <CostsPercentTable value={form} onChange={setForm} />
-          <ManualCostsEditor value={form.manual_costs} onChange={(manual_costs) => setForm({ ...form, manual_costs })} />
         </div>
 
-        <div className="space-y-4 xl:sticky xl:top-4">
+        <div className="space-y-3 xl:sticky xl:top-[68px]">
           <ResultsPanel result={result} loading={loading} error={error} />
         </div>
       </div>
     </div>
-  );
-}
-
-function PricingModeCard({
-  value,
-  result,
-  onChange
-}: {
-  value: PricingInput;
-  result: PricingResult | null;
-  onChange: (value: PricingInput) => void;
-}) {
-  function updateMode(mode: PricingMode) {
-    onChange({
-      ...value,
-      mode,
-      sale_price_cents: mode === "analyze_sale_price" ? value.sale_price_cents ?? result?.recommended_sale_price_cents ?? 0 : null
-    });
-  }
-
-  return (
-    <section className="glass-card p-3 sm:p-4">
-      <h2 className="mb-3 text-sm font-black uppercase tracking-normal text-slate-500 dark:text-slate-300">Modo</h2>
-      <div className="grid gap-2 sm:grid-cols-2">
-        <button
-          type="button"
-          className={modeButtonClass(value.mode === "target_margin")}
-          onClick={() => updateMode("target_margin")}
-        >
-          Margem desejada
-        </button>
-        <button
-          type="button"
-          className={modeButtonClass(value.mode === "analyze_sale_price")}
-          onClick={() => updateMode("analyze_sale_price")}
-        >
-          Preço de venda
-        </button>
-      </div>
-      <div className="mt-3 grid gap-3 md:grid-cols-2">
-        {value.mode === "target_margin" ? (
-          <PercentInput
-            label="Margem desejada"
-            value={value.desired_margin_bps ?? 0}
-            onChange={(desired_margin_bps) => onChange({ ...value, desired_margin_bps })}
-          />
-        ) : (
-          <MoneyInput
-            label="Preço de venda"
-            value={value.sale_price_cents ?? 0}
-            onChange={(sale_price_cents) => onChange({ ...value, sale_price_cents })}
-          />
-        )}
-        <div className="rounded-md border border-slate-200 bg-slate-50/80 p-3 dark:border-line dark:bg-slate-950/30">
-          <p className="field-label">Preço base atual</p>
-          <p className="mt-1 text-2xl font-black">
-            {formatBRL(
-              value.mode === "analyze_sale_price" ? value.sale_price_cents ?? 0 : result?.recommended_sale_price_cents ?? 0
-            )}
-          </p>
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -432,14 +394,14 @@ function ChannelOptionsPanel({
   }
 
   return (
-    <section className="glass-card p-3 sm:p-4">
-      <div className="mb-3 flex flex-col gap-1">
-        <h2 className="text-sm font-black uppercase tracking-normal text-slate-500 dark:text-slate-300">{channel.name}</h2>
+    <section className="glass-card p-3">
+      <div className="mb-2.5 flex flex-col gap-1">
+        <h2 className="section-title">{channel.name}</h2>
         <p className="text-xs text-slate-500 dark:text-slate-400">{channelSourceNote(channel)}</p>
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid gap-2.5 md:grid-cols-2">
         {channel.fee_rules.categories.length > 0 ? (
-          <label className="block space-y-2 md:col-span-2">
+          <label className="block space-y-1.5 md:col-span-2">
             <span className="field-label">Categoria do canal</span>
             <select
               className="input-base"
@@ -485,7 +447,7 @@ function ChannelOptionsPanel({
         {channel.fee_rules.options.map((option) => (
           <label
             key={option.code}
-            className="flex min-h-12 items-center justify-between gap-3 rounded-md border border-slate-200 px-3 py-2 text-sm font-bold dark:border-line"
+            className="flex min-h-10 items-center justify-between gap-3 rounded-[10px] border border-slate-200/80 px-3 py-2 text-sm font-semibold dark:border-line"
           >
             <span>{option.label}</span>
             <input
@@ -523,13 +485,4 @@ function channelSourceNote(channel: NormalizedChannel) {
     manual: "Canal livre para você informar as próprias taxas."
   };
   return notes[channel.code] ?? "Taxas estimadas. Confira as regras do canal antes de usar.";
-}
-
-function modeButtonClass(active: boolean) {
-  return [
-    "h-11 rounded-md border px-4 text-sm font-black transition",
-    active
-      ? "border-mint bg-mint text-slate-950"
-      : "border-slate-200 bg-white text-slate-600 dark:border-line dark:bg-slate-950/30 dark:text-slate-300"
-  ].join(" ");
 }
