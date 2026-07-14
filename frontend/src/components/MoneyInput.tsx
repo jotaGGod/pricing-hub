@@ -6,9 +6,18 @@ type MoneyInputProps = {
   value: number;
   onChange: (value: number) => void;
   placeholder?: string;
+  hideLabel?: boolean;
+  inputClassName?: string;
 };
 
-export function MoneyInput({ label, value, onChange, placeholder = "0,00" }: MoneyInputProps) {
+export function MoneyInput({
+  label,
+  value,
+  onChange,
+  placeholder = "0,00",
+  hideLabel = false,
+  inputClassName = ""
+}: MoneyInputProps) {
   const [draft, setDraft] = useState(centsToDecimalInput(value));
   const [isFocused, setIsFocused] = useState(false);
 
@@ -34,11 +43,12 @@ export function MoneyInput({ label, value, onChange, placeholder = "0,00" }: Mon
   }
 
   return (
-    <label className="block space-y-2">
-      <span className="field-label">{label}</span>
+    <div className={hideLabel ? "block" : "block space-y-1.5"}>
+      {hideLabel ? null : <span className="field-label">{label}</span>}
       <input
         type="number"
-        className="input-base"
+        className={`input-base ${inputClassName}`}
+        aria-label={label}
         inputMode="decimal"
         min="0"
         step="0.01"
@@ -53,6 +63,6 @@ export function MoneyInput({ label, value, onChange, placeholder = "0,00" }: Mon
         onChange={(event) => handleChange(event.target.value)}
         onBlur={handleBlur}
       />
-    </label>
+    </div>
   );
 }

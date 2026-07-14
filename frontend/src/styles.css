@@ -5,7 +5,9 @@
 :root {
   color-scheme: light;
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
 }
 
 :root.dark {
@@ -16,44 +18,86 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: #eef3f7;
+  background: #f7f8fa;
+  letter-spacing: 0;
 }
 
 .dark body {
-  background: linear-gradient(135deg, #090b10 0%, #10141c 52%, #17100d 100%);
+  background: #0c0d10;
+}
+
+::selection {
+  background: rgba(255, 63, 135, 0.24);
 }
 
 @layer components {
   .glass-card {
-    @apply rounded-lg border border-slate-200 bg-white/90 shadow-sm backdrop-blur dark:border-line dark:bg-panel/75;
-    box-shadow: 0 16px 50px rgba(15, 23, 42, 0.07);
+    @apply rounded-[12px] border border-slate-200/80 bg-white/95 backdrop-blur dark:border-line dark:bg-panel/90;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 10px 30px rgba(15, 23, 42, 0.045);
   }
 
   .dark .glass-card {
-    background: linear-gradient(145deg, rgba(17, 24, 33, 0.86), rgba(9, 12, 17, 0.76));
+    background: rgba(21, 23, 28, 0.92);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.04),
-      0 22px 70px rgba(0, 0, 0, 0.24);
+      inset 0 1px 0 rgba(255, 255, 255, 0.035),
+      0 14px 34px rgba(0, 0, 0, 0.2);
   }
 
   .field-label {
-    @apply text-xs font-semibold uppercase tracking-normal text-slate-500 dark:text-slate-400;
+    @apply text-[12px] font-semibold tracking-normal text-slate-500 dark:text-slate-400;
+  }
+
+  .section-title {
+    @apply text-[11px] font-bold uppercase tracking-normal text-slate-500 dark:text-slate-400;
   }
 
   .input-base {
-    @apply h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/20 dark:border-line dark:bg-slate-950/40 dark:text-slate-100;
+    @apply h-9 w-full rounded-[9px] border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition duration-150 placeholder:text-slate-400 focus:border-ember/70 focus:ring-4 focus:ring-ember/10 dark:border-line dark:bg-black/20 dark:text-slate-100 dark:placeholder:text-slate-600;
+    box-shadow: inset 0 1px 1px rgba(15, 23, 42, 0.025);
   }
 
   .btn-primary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md bg-ember px-4 text-sm font-bold text-white transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-[10px] bg-ember px-3.5 text-sm font-semibold text-white transition duration-150 hover:bg-pink-500 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50;
+    box-shadow: 0 7px 18px rgba(255, 63, 135, 0.2);
   }
 
   .btn-secondary {
-    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:border-ember hover:text-ember dark:border-line dark:bg-slate-950/30 dark:text-slate-200;
+    @apply inline-flex h-9 items-center justify-center gap-2 rounded-[10px] border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 transition duration-150 hover:border-ember/60 hover:text-ember active:translate-y-px dark:border-line dark:bg-white/[0.035] dark:text-slate-200;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 5px 14px rgba(15, 23, 42, 0.04);
   }
 
   .icon-btn {
-    @apply inline-grid h-10 w-10 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-ember hover:text-ember dark:border-line dark:bg-slate-950/30 dark:text-slate-200;
+    @apply inline-grid h-9 w-9 place-items-center rounded-[10px] border border-slate-200 bg-white text-slate-600 transition duration-150 hover:border-ember/60 hover:text-ember active:translate-y-px dark:border-line dark:bg-white/[0.035] dark:text-slate-200;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.045);
+  }
+
+  .button-icon {
+    @apply inline-grid h-6 w-6 shrink-0 place-items-center rounded-[7px] bg-slate-900/[0.055] text-current dark:bg-white/[0.075];
+  }
+
+  .btn-primary .button-icon {
+    @apply bg-white/15;
+  }
+}
+
+@media (max-width: 767px) {
+  .input-base {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+  }
+
+  .icon-btn {
+    min-height: 44px;
+    min-width: 44px;
   }
 }
 

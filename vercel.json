@@ -6,13 +6,7 @@
       "routes": [
         {
           "src": "/(pricing|products|simulations|settings|login|register)(/.*)?",
-          "transforms": [
-            {
-              "type": "request.path",
-              "op": "set",
-              "args": "/index.html"
-            }
-          ]
+          "dest": "/index.html"
         }
       ]
     },
