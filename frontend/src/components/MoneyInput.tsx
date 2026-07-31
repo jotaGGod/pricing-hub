@@ -8,6 +8,7 @@ type MoneyInputProps = {
   placeholder?: string;
   hideLabel?: boolean;
   inputClassName?: string;
+  disabled?: boolean;
 };
 
 export function MoneyInput({
@@ -16,7 +17,8 @@ export function MoneyInput({
   onChange,
   placeholder = "0,00",
   hideLabel = false,
-  inputClassName = ""
+  inputClassName = "",
+  disabled = false
 }: MoneyInputProps) {
   const [draft, setDraft] = useState(centsToDecimalInput(value));
   const [isFocused, setIsFocused] = useState(false);
@@ -47,13 +49,14 @@ export function MoneyInput({
       {hideLabel ? null : <span className="field-label">{label}</span>}
       <input
         type="number"
-        className={`input-base ${inputClassName}`}
+        className={`input-base ${disabled ? "cursor-not-allowed opacity-60" : ""} ${inputClassName}`}
         aria-label={label}
         inputMode="decimal"
         min="0"
         step="0.01"
         value={draft}
         placeholder={placeholder}
+        disabled={disabled}
         onFocus={() => setIsFocused(true)}
         onKeyDown={(event) => {
           if (["e", "E", "+", "-"].includes(event.key)) {

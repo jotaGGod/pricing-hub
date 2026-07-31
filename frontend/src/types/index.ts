@@ -105,8 +105,11 @@ export type ChannelOptions = {
 export type PricingMode = "target_margin" | "analyze_sale_price";
 
 export type PricingInput = {
+  product_id: string | null;
   product_title: string;
   product_cost_cents: number;
+  product_unit_cost_cents: number;
+  quantity: number;
   sale_price_cents: number | null;
   desired_margin_bps: number | null;
   seller_discount_bps: number;

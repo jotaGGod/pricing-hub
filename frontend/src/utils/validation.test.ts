@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import { pricingFormSchema } from "./validation";
 
 const baseInput = {
+  product_id: null,
   product_title: "Produto",
   product_cost_cents: 1000,
+  product_unit_cost_cents: 1000,
+  quantity: 1,
   sale_price_cents: null,
   desired_margin_bps: 3000,
   seller_discount_bps: 0,

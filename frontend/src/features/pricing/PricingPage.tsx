@@ -7,15 +7,18 @@ import { PercentInput } from "../../components/PercentInput";
 import { ProductCard } from "../../components/ProductCard";
 import { ResultsPanel } from "../../components/ResultsPanel";
 import { listChannels } from "../../services/channels";
-import { createProduct } from "../../services/products";
+import { listProducts } from "../../services/products";
 import { calculatePricing } from "../../services/pricing";
 import { createSimulation } from "../../services/simulations";
-import type { NormalizedChannel, PricingInput, PricingResult } from "../../types";
+import type { NormalizedChannel, PricingInput, PricingResult, Product } from "../../types";
 import { pricingFormSchema } from "../../utils/validation";
 
 const initialPricingInput: PricingInput = {
+  product_id: null,
   product_title: "",
   product_cost_cents: 0,
+  product_unit_cost_cents: 0,
+  quantity: 1,
   sale_price_cents: 0,
   desired_margin_bps: null,
   seller_discount_bps: 0,
@@ -161,12 +164,12 @@ function pricingChannels(channels: NormalizedChannel[]) {
 
 export function PricingPage() {
   const [channels, setChannels] = useState<NormalizedChannel[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [form, setForm] = useState<PricingInput>(() => readPricingDraft());
   const [result, setResult] = useState<PricingResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [savingProduct, setSavingProduct] = useState(false);
   const [savingSimulation, setSavingSimulation] = useState(false);
 
   useEffect(() => {
@@ -181,6 +184,12 @@ export function PricingPage() {
         );
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Falha ao carregar canais"));
+  }, []);
+
+  useEffect(() => {
+    listProducts()
+      .then(setProducts)
+      .catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -241,28 +250,6 @@ export function PricingPage() {
       window.clearTimeout(timer);
     };
   }, [form]);
-
-  async function saveProduct() {
-    if (!form.product_title.trim()) {
-      setNotice("Informe o título do produto.");
-      return;
-    }
-    setSavingProduct(true);
-    setNotice(null);
-    try {
-      await createProduct({
-        title: form.product_title,
-        cost_cents: form.product_cost_cents,
-        default_channel_code: form.channel_code,
-        category: form.channel_options.category_code || null
-      });
-      setNotice("Produto salvo.");
-    } catch (err) {
-      setNotice(err instanceof Error ? err.message : "Falha ao salvar produto.");
-    } finally {
-      setSavingProduct(false);
-    }
-  }
 
   async function saveSimulation() {
     if (!result) {
@@ -364,7 +351,7 @@ export function PricingPage() {
 
       <div className="grid items-start gap-3 xl:grid-cols-[minmax(260px,0.86fr)_minmax(350px,1.12fr)_minmax(280px,0.94fr)]">
         <div className="space-y-3">
-          <ProductCard value={form} onChange={setForm} onSave={saveProduct} saving={savingProduct} />
+          <ProductCard value={form} onChange={setForm} products={products} />
           <ChannelOptionsPanel channel={selectedChannel} value={form} onChange={setForm} />
         </div>
 

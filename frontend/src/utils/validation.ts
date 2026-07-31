@@ -10,8 +10,11 @@ const manualCostSchema = z.object({
 
 export const pricingFormSchema = z
   .object({
+    product_id: z.string().nullable(),
     product_title: z.string().max(120),
     product_cost_cents: z.number().int().min(0),
+    product_unit_cost_cents: z.number().int().min(0),
+    quantity: z.number().int().min(1),
     sale_price_cents: z.number().int().min(0).nullable(),
     desired_margin_bps: z.number().int().min(0).max(9900).nullable(),
     seller_discount_bps: z.number().int().min(0).max(10000),
