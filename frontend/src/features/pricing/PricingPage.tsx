@@ -1,6 +1,5 @@
 import { Copy, Eraser, FileDown, Save } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { ChannelSelector } from "../../components/ChannelSelector";
 import { CostsPercentTable } from "../../components/CostsPercentTable";
 import { MoneyInput } from "../../components/MoneyInput";
 import { PercentInput } from "../../components/PercentInput";
@@ -321,28 +320,6 @@ export function PricingPage() {
         </div>
       </div>
 
-      <section className="glass-card px-3 py-2.5">
-        <div className="min-w-0 space-y-2">
-          <span className="section-title block">Canal</span>
-          <ChannelSelector
-            channels={channels}
-            value={form.channel_code}
-            onChange={(channel_code) =>
-              setForm({
-                ...form,
-                channel_code,
-                channel_options: {
-                  category_code: "",
-                  override_commission_bps: null,
-                  override_fixed_fee_cents: null,
-                  enabled_options: {}
-                }
-              })
-            }
-          />
-        </div>
-      </section>
-
       {notice ? (
         <div className="rounded-[10px] border border-mint/30 bg-mint/10 px-3 py-2.5 text-sm font-semibold text-emerald-700 dark:text-mint">
           {notice}
@@ -351,7 +328,7 @@ export function PricingPage() {
 
       <div className="grid items-start gap-3 xl:grid-cols-[minmax(260px,0.86fr)_minmax(350px,1.12fr)_minmax(280px,0.94fr)]">
         <div className="space-y-3">
-          <ProductCard value={form} onChange={setForm} products={products} />
+          <ProductCard value={form} onChange={setForm} products={products} channels={channels} />
           <ChannelOptionsPanel channel={selectedChannel} value={form} onChange={setForm} />
         </div>
 

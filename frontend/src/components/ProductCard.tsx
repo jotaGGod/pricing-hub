@@ -1,21 +1,35 @@
 import { BadgeDollarSign } from "lucide-react";
 import { useEffect, useState } from "react";
 import { productCost, productID, productTitle } from "../services/products";
-import type { PricingInput, Product } from "../types";
+import type { NormalizedChannel, PricingInput, Product } from "../types";
 import { MoneyInput } from "./MoneyInput";
 
 type ProductCardProps = {
   value: PricingInput;
   onChange: (value: PricingInput) => void;
   products: Product[];
+  channels: NormalizedChannel[];
 };
 
-export function ProductCard({ value, onChange, products }: ProductCardProps) {
+export function ProductCard({ value, onChange, products, channels }: ProductCardProps) {
   const [quantityDraft, setQuantityDraft] = useState(String(value.quantity || 1));
 
   useEffect(() => {
     setQuantityDraft(String(value.quantity || 1));
   }, [value.quantity]);
+
+  function selectChannel(channelCode: string) {
+    onChange({
+      ...value,
+      channel_code: channelCode,
+      channel_options: {
+        category_code: "",
+        override_commission_bps: null,
+        override_fixed_fee_cents: null,
+        enabled_options: {}
+      }
+    });
+  }
 
   function selectProduct(productId: string) {
     const selected = products.find((product) => productID(product) === productId);
@@ -63,6 +77,22 @@ export function ProductCard({ value, onChange, products }: ProductCardProps) {
         <h2 className="section-title">Produto</h2>
       </div>
       <div className="grid items-end gap-2.5 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+        <div className="block space-y-1.5 md:col-span-2">
+          <span className="field-label">Canal</span>
+          <select
+            className="input-base"
+            aria-label="Canal"
+            value={value.channel_code}
+            onChange={(event) => selectChannel(event.target.value)}
+          >
+            {channels.map((channel) => (
+              <option key={channel.code} value={channel.code}>
+                {channel.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="block space-y-1.5 md:col-span-2">
           <span className="field-label">Produto</span>
           <select
