@@ -3,6 +3,7 @@ package pricing
 type Request struct {
 	ProductTitle      string         `json:"product_title"`
 	ProductCostCents  int64          `json:"product_cost_cents"`
+	Quantity          int64          `json:"quantity"`
 	SalePriceCents    *int64         `json:"sale_price_cents"`
 	DesiredMarginBPS  *int64         `json:"desired_margin_bps"`
 	SellerDiscountBPS int64          `json:"seller_discount_bps"`
@@ -25,6 +26,7 @@ func (r Request) ToInput() PricingInput {
 	return PricingInput{
 		ProductTitle:      r.ProductTitle,
 		ProductCostCents:  r.ProductCostCents,
+		Quantity:          r.Quantity,
 		SalePriceCents:    r.SalePriceCents,
 		DesiredMarginBPS:  r.DesiredMarginBPS,
 		SellerDiscountBPS: r.SellerDiscountBPS,

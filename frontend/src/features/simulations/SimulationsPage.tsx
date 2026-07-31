@@ -103,6 +103,7 @@ export function SimulationsPage() {
             <thead>
               <tr className="border-b border-slate-200 dark:border-line">
                 <th className="section-title px-4 py-2">Simulação</th>
+                <th className="section-title px-4 py-2">Quantidade</th>
                 <th className="section-title px-4 py-2">Preço de custo</th>
                 <th className="section-title px-4 py-2">Preço de venda</th>
                 <th className="section-title px-4 py-2">Margem</th>
@@ -128,6 +129,9 @@ export function SimulationsPage() {
                     <td className="min-w-[180px] px-4 py-1.5">
                       <p className="font-semibold">{title}</p>
                       {subtitle ? <p className="truncate text-xs text-slate-500 dark:text-slate-400">{subtitle}</p> : null}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-1.5 text-slate-500 dark:text-slate-400">
+                      {input?.quantity ? input.quantity : "—"}
                     </td>
                     <td className="whitespace-nowrap px-4 py-1.5 text-slate-500 dark:text-slate-400">
                       {result ? formatBRL(result.product_cost_cents) : "—"}
