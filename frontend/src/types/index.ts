@@ -185,7 +185,18 @@ export type Simulation = {
   created_at?: string;
 };
 
+export type DefaultCosts = {
+  tax_bps: number;
+  ads_bps: number;
+  fixed_costs_bps: number;
+  extra_fees_bps: number;
+  seller_discount_bps: number;
+  logistic_cost: VariableCost;
+  manual_costs: ManualCost[];
+};
+
 export type Preference = {
   user_id: string;
   theme: Theme;
+  default_costs: DefaultCosts;
 };

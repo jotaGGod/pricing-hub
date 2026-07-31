@@ -2,6 +2,7 @@ package preferences
 
 import (
 	"context"
+	"encoding/json"
 
 	"pricing-hub/backend/internal/infra/database"
 
@@ -27,12 +28,19 @@ func (r *PostgresRepository) Get(ctx context.Context, userID string) (UserPrefer
 	}
 
 	var preference UserPreference
+	var rawCosts []byte
 	err := r.db.QueryRow(ctx, `
-		select user_id, theme, created_at, updated_at
+		select user_id, theme, default_costs_json, created_at, updated_at
 		from user_preferences
 		where user_id = $1
-	`, userID).Scan(&preference.UserID, &preference.Theme, &preference.CreatedAt, &preference.UpdatedAt)
-	return preference, database.MapError(err)
+	`, userID).Scan(&preference.UserID, &preference.Theme, &rawCosts, &preference.CreatedAt, &preference.UpdatedAt)
+	if err != nil {
+		return UserPreference{}, database.MapError(err)
+	}
+	if err := json.Unmarshal(rawCosts, &preference.DefaultCosts); err != nil {
+		return UserPreference{}, err
+	}
+	return preference, nil
 }
 
 func (r *PostgresRepository) UpsertTheme(ctx context.Context, userID string, theme Theme) (UserPreference, error) {
@@ -40,10 +48,42 @@ func (r *PostgresRepository) UpsertTheme(ctx context.Context, userID string, the
 		insert into user_preferences (user_id, theme)
 		values ($1, $2)
 		on conflict (user_id) do update set theme = excluded.theme
-		returning user_id, theme, created_at, updated_at
+		returning user_id, theme, default_costs_json, created_at, updated_at
 	`
 	var preference UserPreference
+	var rawCosts []byte
 	err := r.db.QueryRow(ctx, query, userID, theme).
-		Scan(&preference.UserID, &preference.Theme, &preference.CreatedAt, &preference.UpdatedAt)
-	return preference, database.MapError(err)
+		Scan(&preference.UserID, &preference.Theme, &rawCosts, &preference.CreatedAt, &preference.UpdatedAt)
+	if err != nil {
+		return UserPreference{}, database.MapError(err)
+	}
+	if err := json.Unmarshal(rawCosts, &preference.DefaultCosts); err != nil {
+		return UserPreference{}, err
+	}
+	return preference, nil
+}
+
+func (r *PostgresRepository) UpsertDefaultCosts(ctx context.Context, userID string, costs DefaultCosts) (UserPreference, error) {
+	costsJSON, err := json.Marshal(costs)
+	if err != nil {
+		return UserPreference{}, err
+	}
+
+	query := `
+		insert into user_preferences (user_id, default_costs_json)
+		values ($1, $2)
+		on conflict (user_id) do update set default_costs_json = excluded.default_costs_json
+		returning user_id, theme, default_costs_json, created_at, updated_at
+	`
+	var preference UserPreference
+	var rawCosts []byte
+	err = r.db.QueryRow(ctx, query, userID, costsJSON).
+		Scan(&preference.UserID, &preference.Theme, &rawCosts, &preference.CreatedAt, &preference.UpdatedAt)
+	if err != nil {
+		return UserPreference{}, database.MapError(err)
+	}
+	if err := json.Unmarshal(rawCosts, &preference.DefaultCosts); err != nil {
+		return UserPreference{}, err
+	}
+	return preference, nil
 }

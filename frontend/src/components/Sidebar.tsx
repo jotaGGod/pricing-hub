@@ -1,4 +1,4 @@
-import { Calculator, History, LogOut, Package, Settings, Tags } from "lucide-react";
+import { Calculator, History, LogOut, Package, Percent, Settings, Tags } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
 
@@ -6,6 +6,7 @@ const navItems = [
   { to: "/pricing", label: "Precificador", icon: Calculator },
   { to: "/products", label: "Produtos", icon: Package },
   { to: "/simulations", label: "Simulações", icon: History },
+  { to: "/taxes", label: "Taxas e Custos", icon: Percent },
   { to: "/settings", label: "Ajustes", icon: Settings }
 ];
 

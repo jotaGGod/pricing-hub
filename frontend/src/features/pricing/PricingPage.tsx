@@ -1,5 +1,5 @@
 import { Copy, Eraser, FileDown, Save } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CostsPercentTable } from "../../components/CostsPercentTable";
 import { MoneyInput } from "../../components/MoneyInput";
 import { PercentInput } from "../../components/PercentInput";
@@ -8,8 +8,10 @@ import { ResultsPanel } from "../../components/ResultsPanel";
 import { listChannels } from "../../services/channels";
 import { listProducts } from "../../services/products";
 import { calculatePricing } from "../../services/pricing";
+import { getPreferences } from "../../services/preferences";
 import { createSimulation } from "../../services/simulations";
-import type { NormalizedChannel, PricingInput, PricingResult, Product } from "../../types";
+import type { DefaultCosts, NormalizedChannel, PricingInput, PricingResult, Product } from "../../types";
+import { isRecord, pricingDraftStorageKey } from "../../utils/pricingDraft";
 import { pricingFormSchema } from "../../utils/validation";
 
 const initialPricingInput: PricingInput = {
@@ -41,8 +43,6 @@ const initialPricingInput: PricingInput = {
   mode: "analyze_sale_price"
 };
 
-const pricingDraftStorageKey = "pricing-hub:pricing-draft:v1";
-
 function createInitialPricingInput(): PricingInput {
   return {
     ...initialPricingInput,
@@ -57,8 +57,11 @@ function createInitialPricingInput(): PricingInput {
   };
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+function hasStoredDraft(): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  return window.localStorage.getItem(pricingDraftStorageKey) !== null;
 }
 
 function readPricingDraft(): PricingInput {
@@ -170,6 +173,8 @@ export function PricingPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [savingSimulation, setSavingSimulation] = useState(false);
+  const [savedCostDefaults, setSavedCostDefaults] = useState<DefaultCosts | null>(null);
+  const hadDraftAtMount = useRef(hasStoredDraft());
 
   useEffect(() => {
     listChannels()
@@ -188,6 +193,17 @@ export function PricingPage() {
   useEffect(() => {
     listProducts()
       .then(setProducts)
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    getPreferences()
+      .then((preference) => {
+        setSavedCostDefaults(preference.default_costs);
+        if (!hadDraftAtMount.current) {
+          setForm((current) => ({ ...current, ...preference.default_costs }));
+        }
+      })
       .catch(() => undefined);
   }, []);
 
@@ -275,7 +291,10 @@ export function PricingPage() {
 
   function clearPricingForm() {
     window.localStorage.removeItem(pricingDraftStorageKey);
-    setForm(createInitialPricingInput());
+    setForm({
+      ...createInitialPricingInput(),
+      ...(savedCostDefaults ?? {})
+    });
     setResult(zeroPricingResult());
     setError(null);
     setNotice(null);
@@ -333,7 +352,18 @@ export function PricingPage() {
         </div>
 
         <div className="space-y-3">
-          <CostsPercentTable value={form} onChange={setForm} />
+          <CostsPercentTable
+            value={{
+              tax_bps: form.tax_bps,
+              ads_bps: form.ads_bps,
+              fixed_costs_bps: form.fixed_costs_bps,
+              extra_fees_bps: form.extra_fees_bps,
+              seller_discount_bps: form.seller_discount_bps,
+              logistic_cost: form.logistic_cost,
+              manual_costs: form.manual_costs
+            }}
+            onChange={(costs) => setForm({ ...form, ...costs })}
+          />
         </div>
 
         <div className="space-y-3 xl:sticky xl:top-[68px]">

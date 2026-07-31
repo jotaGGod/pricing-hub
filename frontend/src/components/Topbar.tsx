@@ -1,4 +1,4 @@
-import { Calculator, History, Moon, Package, Settings, Sun } from "lucide-react";
+import { Calculator, History, Moon, Package, Percent, Settings, Sun } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
 import { useTheme } from "../features/settings/ThemeContext";
@@ -7,6 +7,7 @@ const mobileItems = [
   { to: "/pricing", label: "Preço", icon: Calculator },
   { to: "/products", label: "Produtos", icon: Package },
   { to: "/simulations", label: "Simulações", icon: History },
+  { to: "/taxes", label: "Taxas", icon: Percent },
   { to: "/settings", label: "Ajustes", icon: Settings }
 ];
 

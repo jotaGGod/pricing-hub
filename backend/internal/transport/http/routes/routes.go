@@ -53,4 +53,5 @@ func Register(
 
 	protected.Get("/preferences", preferenceHandler.Get)
 	protected.Put("/preferences/theme", preferenceHandler.UpdateTheme)
+	protected.Put("/preferences/default-costs", preferenceHandler.UpdateDefaultCosts)
 }

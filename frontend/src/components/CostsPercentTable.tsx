@@ -1,12 +1,12 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useRef } from "react";
-import type { ManualCost, PricingInput } from "../types";
+import type { DefaultCosts, ManualCost } from "../types";
 import { MoneyInput } from "./MoneyInput";
 import { PercentInput } from "./PercentInput";
 
 type CostsPercentTableProps = {
-  value: PricingInput;
-  onChange: (value: PricingInput) => void;
+  value: DefaultCosts;
+  onChange: (value: DefaultCosts) => void;
 };
 
 let manualCostKeyCounter = 0;
