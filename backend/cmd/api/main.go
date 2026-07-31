@@ -9,18 +9,18 @@ import (
 	"syscall"
 	"time"
 
-	"pricing-hub/backend/internal/channel"
-	"pricing-hub/backend/internal/identity"
-	"pricing-hub/backend/internal/infra/auth"
-	"pricing-hub/backend/internal/infra/config"
-	"pricing-hub/backend/internal/infra/database"
-	googleoauth "pricing-hub/backend/internal/infra/oauth"
-	"pricing-hub/backend/internal/preferences"
-	"pricing-hub/backend/internal/pricing"
-	"pricing-hub/backend/internal/product"
-	"pricing-hub/backend/internal/simulation"
-	transport "pricing-hub/backend/internal/transport/http"
-	"pricing-hub/backend/internal/transport/http/routes"
+	"pricing-hub/backend/internal/domain/channel"
+	"pricing-hub/backend/internal/domain/identity"
+	"pricing-hub/backend/internal/domain/preferences"
+	"pricing-hub/backend/internal/domain/pricing"
+	"pricing-hub/backend/internal/domain/product"
+	"pricing-hub/backend/internal/domain/simulation"
+	"pricing-hub/backend/internal/infrastructure/auth"
+	"pricing-hub/backend/internal/infrastructure/config"
+	"pricing-hub/backend/internal/infrastructure/database"
+	transport "pricing-hub/backend/internal/infrastructure/http"
+	"pricing-hub/backend/internal/infrastructure/http/routes"
+	googleoauth "pricing-hub/backend/internal/infrastructure/oauth"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -57,15 +57,21 @@ func main() {
 	simulationRepo := simulation.NewPostgresRepository(db)
 
 	tokenService := auth.NewTokenService(cfg)
-	pricingService := pricing.NewPricingService()
 	googleOAuth := googleoauth.NewGoogleOAuth(cfg)
 
-	authHandler := identity.NewHandler(cfg, userRepo, sessionRepo, preferenceRepo, tokenService, googleOAuth)
-	channelHandler := channel.NewHandler(channelRepo)
-	pricingHandler := pricing.NewHandler(channelRepo, pricingService)
-	productHandler := product.NewHandler(productRepo)
-	simulationHandler := simulation.NewHandler(simulationRepo)
-	preferenceHandler := preferences.NewHandler(preferenceRepo)
+	identityService := identity.NewService(cfg, userRepo, sessionRepo, preferenceRepo, tokenService, googleOAuth)
+	channelService := channel.NewService(channelRepo)
+	pricingService := pricing.NewPricingService(channelRepo)
+	productService := product.NewService(productRepo)
+	simulationService := simulation.NewService(simulationRepo)
+	preferenceService := preferences.NewService(preferenceRepo)
+
+	identityController := identity.NewController(cfg, identityService)
+	channelController := channel.NewController(channelService)
+	pricingController := pricing.NewController(pricingService)
+	productController := product.NewController(productService)
+	simulationController := simulation.NewController(simulationService)
+	preferenceController := preferences.NewController(preferenceService)
 
 	app := fiber.New(fiber.Config{
 		AppName: "pricing-hub",
@@ -95,12 +101,12 @@ func main() {
 	routes.Register(
 		app,
 		transport.Auth(tokenService),
-		authHandler,
-		channelHandler,
-		pricingHandler,
-		productHandler,
-		simulationHandler,
-		preferenceHandler,
+		identityController,
+		channelController,
+		pricingController,
+		productController,
+		simulationController,
+		preferenceController,
 	)
 
 	go func() {
