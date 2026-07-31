@@ -1,10 +1,10 @@
 import { Pencil, Save, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { listChannels } from "../../services/channels";
 import {
   deleteSimulation,
   listSimulations,
   simulationChannelCode,
-  simulationCreatedAt,
   simulationDescription,
   simulationID,
   simulationInput,
@@ -17,6 +17,7 @@ import { formatBPS, formatBRL } from "../../utils/money";
 
 export function SimulationsPage() {
   const [simulations, setSimulations] = useState<Simulation[]>([]);
+  const [channelNames, setChannelNames] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Simulation | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -35,6 +36,11 @@ export function SimulationsPage() {
 
   useEffect(() => {
     reload();
+    listChannels()
+      .then((channels) => {
+        setChannelNames(Object.fromEntries(channels.map((channel) => [channel.code, channel.name])));
+      })
+      .catch(() => undefined);
   }, []);
 
   function openEdit(simulation: Simulation) {
@@ -91,51 +97,74 @@ export function SimulationsPage() {
 
       {error ? <p className="text-sm font-bold text-orange-500">{error}</p> : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {simulations.map((simulation) => {
-          const result = simulationResult(simulation);
-          const input = simulationInput(simulation);
-          const description = simulationDescription(simulation);
-          return (
-            <article key={simulationID(simulation)} className="glass-card p-5">
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <h2 className="font-black">{simulationTitle(simulation)}</h2>
-                  {description || input?.product_title ? (
-                    <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-300">
-                      {description || input?.product_title}
-                    </p>
-                  ) : null}
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{simulationCreatedAt(simulation)}</p>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  <button type="button" className="icon-btn" title="Editar" onClick={() => openEdit(simulation)}>
-                    <Pencil size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    title="Excluir"
-                    onClick={async () => {
-                      await deleteSimulation(simulationID(simulation));
-                      reload();
-                    }}
+      <div className="glass-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr className="border-b border-slate-200 dark:border-line">
+                <th className="section-title px-4 py-2">Simulação</th>
+                <th className="section-title px-4 py-2">Preço de custo</th>
+                <th className="section-title px-4 py-2">Preço de venda</th>
+                <th className="section-title px-4 py-2">Margem</th>
+                <th className="section-title px-4 py-2">Lucro</th>
+                <th className="section-title px-4 py-2">Plataforma</th>
+                <th className="w-20 px-4 py-2" aria-hidden="true" />
+              </tr>
+            </thead>
+            <tbody>
+              {simulations.map((simulation) => {
+                const result = simulationResult(simulation);
+                const input = simulationInput(simulation);
+                const title = simulationTitle(simulation);
+                const description = simulationDescription(simulation);
+                const subtitle = description || (input?.product_title !== title ? input?.product_title : "");
+                const channelCode = simulationChannelCode(simulation);
+                const platform = channelNames[channelCode] || channelCode || "—";
+                return (
+                  <tr
+                    key={simulationID(simulation)}
+                    className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50 dark:border-line dark:hover:bg-white/[0.03]"
                   >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </div>
-              {result ? (
-                <div className="grid grid-cols-2 gap-3">
-                  <Metric label="Preço" value={formatBRL(result.recommended_sale_price_cents)} />
-                  <Metric label="Margem" value={formatBPS(result.margin_bps)} />
-                  <Metric label="Lucro" value={formatBRL(result.net_profit_cents)} />
-                  <Metric label="Custo" value={formatBRL(result.total_cost_cents)} />
-                </div>
-              ) : null}
-            </article>
-          );
-        })}
+                    <td className="min-w-[180px] px-4 py-1.5">
+                      <p className="font-semibold">{title}</p>
+                      {subtitle ? <p className="truncate text-xs text-slate-500 dark:text-slate-400">{subtitle}</p> : null}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-1.5 text-slate-500 dark:text-slate-400">
+                      {result ? formatBRL(result.product_cost_cents) : "—"}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-1.5">
+                      {result ? formatBRL(result.recommended_sale_price_cents) : "—"}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-1.5">{result ? formatBPS(result.margin_bps) : "—"}</td>
+                    <td className="whitespace-nowrap px-4 py-1.5">{result ? formatBRL(result.net_profit_cents) : "—"}</td>
+                    <td className="whitespace-nowrap px-4 py-1.5 text-slate-500 dark:text-slate-400">{platform}</td>
+                    <td className="px-4 py-1.5 text-right">
+                      <div className="flex justify-end gap-1.5">
+                        <button type="button" className="icon-btn h-8 w-8" title="Editar" onClick={() => openEdit(simulation)}>
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          className="icon-btn h-8 w-8"
+                          title="Excluir"
+                          onClick={async () => {
+                            await deleteSimulation(simulationID(simulation));
+                            reload();
+                          }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        {simulations.length === 0 ? (
+          <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">Nenhuma simulação salva ainda.</div>
+        ) : null}
       </div>
 
       {editing ? (
@@ -188,15 +217,6 @@ export function SimulationsPage() {
           </div>
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border border-slate-200 p-3 dark:border-line">
-      <p className="text-xs font-bold uppercase tracking-normal text-slate-400">{label}</p>
-      <p className="mt-1 font-black">{value}</p>
     </div>
   );
 }
