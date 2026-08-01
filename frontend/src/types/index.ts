@@ -200,3 +200,65 @@ export type Preference = {
   theme: Theme;
   default_costs: DefaultCosts;
 };
+
+export type FinanceKind = "income" | "expense";
+
+export type FinanceCategory = {
+  id: string;
+  user_id: string;
+  name: string;
+  kind: FinanceKind;
+  icon: string;
+  description: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FinanceTransaction = {
+  id: string;
+  user_id: string;
+  category_id: string;
+  kind: FinanceKind;
+  amount_cents: number;
+  description: string | null;
+  period_start: string;
+  period_end: string;
+  created_at: string;
+  updated_at: string;
+  category_name: string;
+  category_icon: string;
+};
+
+export type FinanceMonthlyPoint = {
+  month: string;
+  revenue_cents: number;
+  expense_cents: number;
+  net_profit_cents: number;
+  margin_bps: number;
+};
+
+export type FinanceSummaryLine = {
+  category_id: string;
+  category_name: string;
+  category_icon: string;
+  amount_cents: number;
+  share_of_revenue_bps: number;
+  change_bps: number | null;
+};
+
+export type FinanceSummary = {
+  period_start: string;
+  period_end: string;
+  revenue_cents: number;
+  expense_cents: number;
+  net_profit_cents: number;
+  margin_bps: number;
+  expense_share_of_revenue_bps: number;
+  revenue_change_bps: number | null;
+  expense_change_bps: number | null;
+  net_profit_change_bps: number | null;
+  margin_change_bps: number | null;
+  income_lines: FinanceSummaryLine[];
+  expense_lines: FinanceSummaryLine[];
+};

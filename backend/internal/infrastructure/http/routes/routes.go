@@ -2,6 +2,7 @@ package routes
 
 import (
 	"pricing-hub/backend/internal/domain/channel"
+	"pricing-hub/backend/internal/domain/finance"
 	"pricing-hub/backend/internal/domain/identity"
 	"pricing-hub/backend/internal/domain/preferences"
 	"pricing-hub/backend/internal/domain/pricing"
@@ -20,6 +21,7 @@ func Register(
 	productHandler *product.Controller,
 	simulationHandler *simulation.Controller,
 	preferenceHandler *preferences.Controller,
+	financeHandler *finance.Controller,
 ) {
 	api := app.Group("/api")
 
@@ -54,4 +56,17 @@ func Register(
 	protected.Get("/preferences", preferenceHandler.Get)
 	protected.Put("/preferences/theme", preferenceHandler.UpdateTheme)
 	protected.Put("/preferences/default-costs", preferenceHandler.UpdateDefaultCosts)
+
+	protected.Get("/finance/categories", financeHandler.ListCategories)
+	protected.Post("/finance/categories", financeHandler.CreateCategory)
+	protected.Put("/finance/categories/:id", financeHandler.UpdateCategory)
+	protected.Delete("/finance/categories/:id", financeHandler.DeleteCategory)
+
+	protected.Get("/finance/transactions", financeHandler.ListTransactions)
+	protected.Post("/finance/transactions", financeHandler.CreateTransaction)
+	protected.Put("/finance/transactions/:id", financeHandler.UpdateTransaction)
+	protected.Delete("/finance/transactions/:id", financeHandler.DeleteTransaction)
+
+	protected.Get("/finance/summary", financeHandler.Summary)
+	protected.Get("/finance/series", financeHandler.Series)
 }

@@ -1,10 +1,11 @@
-import { Calculator, History, Moon, Package, Percent, Settings, Sun } from "lucide-react";
+import { Calculator, History, Moon, Package, Percent, PiggyBank, Settings, Sun } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
 import { useTheme } from "../features/settings/ThemeContext";
 
 const mobileItems = [
   { to: "/pricing", label: "Preço", icon: Calculator },
+  { to: "/finance", label: "Financeiro", icon: PiggyBank },
   { to: "/products", label: "Produtos", icon: Package },
   { to: "/simulations", label: "Simulações", icon: History },
   { to: "/taxes", label: "Taxas", icon: Percent },
@@ -16,7 +17,7 @@ export function Topbar() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="no-print sticky top-0 z-20 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl dark:border-line dark:bg-ink/85">
+    <header className="no-print border-b border-slate-200/80 bg-white/85 backdrop-blur-xl dark:border-line dark:bg-ink/85">
       <div className="flex h-14 items-center justify-between gap-2 px-3 sm:px-5 lg:px-6">
         <nav className="flex min-w-0 flex-1 gap-1 lg:hidden">
           {mobileItems.map((item) => (

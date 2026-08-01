@@ -5,7 +5,7 @@
       "framework": "vite",
       "routes": [
         {
-          "src": "/(pricing|products|simulations|taxes|settings|login|register)(/.*)?",
+          "src": "/(pricing|finance|products|simulations|taxes|settings|login|register)(/.*)?",
           "dest": "/index.html"
         }
       ]

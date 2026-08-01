@@ -1,6 +1,10 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { LoginPage } from "../features/auth/LoginPage";
 import { RegisterPage } from "../features/auth/RegisterPage";
+import { CategoriesPage } from "../features/finance/CategoriesPage";
+import { DashboardPage } from "../features/finance/DashboardPage";
+import { FinanceLayout } from "../features/finance/FinanceLayout";
+import { TransactionsPage } from "../features/finance/TransactionsPage";
 import { PricingPage } from "../features/pricing/PricingPage";
 import { ProductsPage } from "../features/products/ProductsPage";
 import { SimulationsPage } from "../features/simulations/SimulationsPage";
@@ -17,6 +21,12 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/finance" element={<FinanceLayout />}>
+            <Route index element={<Navigate to="/finance/dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="transactions" element={<TransactionsPage />} />
+            <Route path="categories" element={<CategoriesPage />} />
+          </Route>
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/simulations" element={<SimulationsPage />} />
           <Route path="/taxes" element={<TaxesPage />} />

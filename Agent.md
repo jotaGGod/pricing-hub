@@ -78,7 +78,7 @@ Configuração importante:
 - serviço `backend`: root `backend`, framework `go`, entrypoint `main.go`;
 - rewrite `/api/(.*)` para o backend;
 - rewrite `/(.*)` para o frontend;
-- rotas do SPA fallback do frontend (`services.frontend.routes[0].src`) precisam listar TODAS as rotas client-side (`pricing|products|simulations|taxes|settings|login|register`). Se uma rota nova for criada no React Router e não for adicionada aqui, o refresh direto naquela URL quebra em produção (já aconteceu duas vezes, ver histórico de commits `fix: corrigir fallback de rotas SPA no Vercel`).
+- rotas do SPA fallback do frontend (`services.frontend.routes[0].src`) precisam listar TODAS as rotas client-side (`pricing|finance|products|simulations|taxes|settings|login|register`). Se uma rota nova for criada no React Router e não for adicionada aqui, o refresh direto naquela URL quebra em produção (já aconteceu duas vezes, ver histórico de commits `fix: corrigir fallback de rotas SPA no Vercel`).
 
 Arquivo:
 
@@ -132,6 +132,17 @@ backend/
         service.go                # Service (fino — delega ao repository; sem regra de negócio própria hoje)
         controller.go             # rotas HTTP (List, Get)
         seed.go + channels.json   # seed automático das taxas de marketplace no startup
+      finance/
+        model.go                  # Kind (income/expense), Category, Transaction, TransactionView,
+                                   #   Period, MonthlyPoint, SummaryLine, Summary
+        repository.go             # interfaces CategoryRepository, TransactionRepository
+        repository_postgres.go    # implementação Postgres (transações usam overlap de período:
+                                   #   period_start <= fim AND period_end >= início)
+        service.go                # defaultCategories (seed automático por usuário, não por migration),
+                                   #   CRUD de categoria/transação, Summary (DRE + comparação com período
+                                   #   anterior), Series (janela de 6 meses)
+        controller.go             # rotas HTTP (categorias, transações, summary, series)
+        request.go                # CategoryRequest, TransactionRequest
       identity/
         model.go                  # User, Session
         repository.go             # interfaces UserRepository, SessionRepository
@@ -183,7 +194,7 @@ backend/
         migrations.go               # RunMigrations (aplica *.sql em ordem, idempotente via schema_migrations)
         errors.go                   # MapError (mapeia erros do Postgres para shared.Err*)
       migrations/
-        001_init.sql, 002_simulation_description.sql, 003_default_costs.sql, embed.go
+        001_init.sql, 002_simulation_description.sql, 003_default_costs.sql, 004_finance.sql, embed.go
       oauth/
         google.go                   # GoogleOAuth (AuthCodeURL, ExchangeUser)
       http/
@@ -264,10 +275,20 @@ Tabelas principais:
 - `marketplace_channels`
 - `products`
 - `pricing_simulations`
+- `finance_categories`
+- `finance_transactions`
 
 O backend executa migrations e seed automaticamente no startup.
 
 Migration mais recente:
+
+```txt
+backend/internal/infrastructure/migrations/004_finance.sql
+```
+
+Cria `finance_categories` e `finance_transactions` (com checks de `kind`, FKs e índices). Diferente das outras tabelas, as 12 categorias-padrão (Faturamento, Impostos, Marketing, etc.) **não** vêm de INSERT nessa migration — são semeadas em runtime, por usuário, na primeira chamada de `finance.Service.ListCategories` (`defaultCategories` em `backend/internal/domain/finance/service.go`).
+
+Migration anterior:
 
 ```txt
 backend/internal/infrastructure/migrations/003_default_costs.sql
@@ -299,14 +320,24 @@ Rotas principais:
 - `/login`
 - `/register`
 - `/pricing`
+- `/finance` (nova — ver seção "Financeiro"; índice redireciona para `/finance/dashboard`)
+  - `/finance/dashboard`
+  - `/finance/transactions`
+  - `/finance/categories`
 - `/products`
 - `/simulations`
-- `/taxes` (nova — ver seção "Taxas e Custos")
+- `/taxes` (ver seção "Taxas e Custos")
 - `/settings`
 
 A rota principal da aplicação é `/pricing`. Tema escuro é o padrão.
 
-**Importante**: existe navegação duplicada entre `frontend/src/components/Sidebar.tsx` (desktop, `lg:block`) e `frontend/src/components/Topbar.tsx` (mobile, `lg:hidden`, array `mobileItems`). Ao adicionar/remover uma rota do menu, os dois arquivos precisam ser atualizados — eles não compartilham a mesma lista.
+**Importante**: existe navegação duplicada em TRÊS lugares (não dois):
+
+- `frontend/src/components/Sidebar.tsx` (desktop, `lg:block`) — array `navItems` para os itens de topo, mais um bloco expansível "Financeiro" com array próprio `financeSubItems` (Dashboard/Transações/Categorias) que expande/recolhe (`financeExpanded`, com `useEffect` auto-expandindo quando `location.pathname` começa com `/finance`);
+- `frontend/src/components/Topbar.tsx` (mobile, `lg:hidden`, array `mobileItems`) — tem um item "Financeiro" que leva a `/finance`, sem sub-itens (só o ícone);
+- `frontend/src/features/finance/FinanceLayout.tsx` — barra de sub-abas (Dashboard/Transações/Categorias) com `lg:hidden`: é o equivalente mobile da navegação aninhada que só existe em desktop na Sidebar.
+
+Ao adicionar/remover uma rota do menu, verifique os três. Se for uma sub-aba do Financeiro especificamente, `Sidebar.tsx` (`financeSubItems`) e `FinanceLayout.tsx` (`subTabs`) têm listas independentes com os mesmos itens — as duas precisam mudar junto.
 
 ## Estado Atual da Experiência
 
@@ -368,6 +399,41 @@ backend/internal/domain/preferences/service.go     (validateDefaultCosts)
 backend/internal/infrastructure/migrations/003_default_costs.sql
 ```
 
+## Financeiro (feature nova)
+
+Seção nova (`/finance`), no menu abaixo de "Precificador". Objetivo: o usuário lança TOTAIS de receita/despesa por categoria e por período (não lançamentos individuais do dia a dia — ex.: "gastei R$600 em Marketing este mês", um número só), e o sistema calcula uma DRE simplificada (lucro real, margem, comparação com o período anterior).
+
+Sub-rotas, todas usando o período compartilhado via `frontend/src/utils/financePeriod.ts` (persistido em `localStorage`, chave `pricing-hub:finance-period:v1` — trocar de sub-aba não reseta o período escolhido):
+
+- `/finance/dashboard` (`frontend/src/features/finance/DashboardPage.tsx`) — 4 KPIs (Faturamento Total, Lucro Real, Margem de Lucro, Despesas Totais) com variação vs. período anterior; card de composição de custos (donut SVG + legenda); DRE completa em tabela.
+- `/finance/transactions` (`frontend/src/features/finance/TransactionsPage.tsx`) — lista dos lançamentos do período + modal (backdrop desfocado) para criar/editar. Exporta `PeriodPicker`, reaproveitado pelo Dashboard.
+- `/finance/categories` (`frontend/src/features/finance/CategoriesPage.tsx`) — CRUD de categorias (nome, tipo receita/despesa, ícone). 12 categorias-padrão são semeadas automaticamente por usuário na primeira chamada de `ListCategories` (`defaultCategories` em `backend/internal/domain/finance/service.go`) — não vêm de uma migration.
+
+Backend: ver entrada `finance/` na árvore da seção "Arquitetura Backend" acima, mais `backend/internal/infrastructure/migrations/004_finance.sql`. Rotas registradas em `routes.go` (todas protegidas por auth): `GET/POST /finance/categories`, `PUT/DELETE /finance/categories/:id`, `GET/POST /finance/transactions`, `PUT/DELETE /finance/transactions/:id`, `GET /finance/summary`, `GET /finance/series`.
+
+Frontend:
+
+```txt
+frontend/src/types/index.ts               # FinanceKind, FinanceCategory, FinanceTransaction,
+                                           #   FinanceMonthlyPoint, FinanceSummaryLine, FinanceSummary
+frontend/src/services/finance.ts          # CRUD + getSummary/getSeries, tipo Period, periodQuery()
+frontend/src/utils/financeIcons.tsx       # financeIcons (24 ícones lucide; chave é a string salva no banco)
+frontend/src/utils/financePeriod.ts       # currentMonthPeriod, read/writeFinancePeriod,
+                                           #   monthStartISODate/monthEndISODate (ver nota do seletor abaixo)
+frontend/src/features/finance/FinanceLayout.tsx     # <Outlet/> + sub-abas (nav só em mobile, lg:hidden)
+frontend/src/features/finance/DashboardPage.tsx     # KPIs + Donut + DRE
+frontend/src/features/finance/TransactionsPage.tsx  # lista + modal; exporta PeriodPicker
+frontend/src/features/finance/CategoriesPage.tsx    # CRUD de categoria
+```
+
+Decisões e detalhes não óbvios desta feature (importante ler antes de mexer):
+
+- **Seletor de período é só mês/ano** (`<input type="month">`, não `type="date"`) — o usuário escolhe algo como "08/2026", nunca um dia específico. Por baixo, `Period.start`/`Period.end` continuam sendo datas ISO completas (`YYYY-MM-DD`), porque o backend segue validando/comparando por dia (`parsePeriod`, overlap de transação). A conversão mês→primeiro dia / mês→último dia acontece só na UI, em `financePeriod.ts` (`monthStartISODate`/`monthEndISODate`). Não reintroduza inputs de dia completo aqui sem pedido explícito.
+- **`Topbar.tsx` não é mais `sticky`** (era `sticky top-0 z-20`; hoje só tem as classes de borda/fundo). Removido a pedido do usuário porque o header ficava grudado no topo ao rolar o Dashboard (página bem mais longa que as outras). É uma mudança **global**, afeta todas as rotas, não só `/finance`. Se pedirem sticky de volta, é só reintroduzir `sticky top-0 z-20` nessa linha.
+- **O Dashboard não tem gráfico de linha/série temporal** — os dois gráficos que existiam ("Lucro Real ao Longo do Tempo", "Margem de Lucro (%)") foram removidos a pedido do usuário (ficavam com aparência "quebrada" com poucos meses de histórico) e substituídos por uma segunda grade 2×2 reaproveitando os mesmos 4 `KpiCard` do topo da página. É duplicação intencional das mesmas 4 métricas na mesma tela — foi pedido assim explicitamente, não é engano.
+- **A API de série mensal continua existindo e testada** (`GET /finance/series`, `finance.Service.Series`, `services/finance.ts#getSeries`, tipo `FinanceMonthlyPoint`), só que sem nenhum consumidor no frontend depois da remoção acima. Não é dead code para apagar sem pensar — é uma capacidade pronta caso um gráfico de evolução volte em outro formato.
+- **Donut** (função `Donut` dentro de `DashboardPage.tsx`) é 200×200 (era 140×140), com o texto central (`Total` / valor / `% do faturamento`) limitado a `max-w-[112px]` para nunca vazar por cima do anel colorido. Se for aumentar o donut de novo, mantenha essa largura máxima proporcional ao raio interno (`radius - strokeWidth/2`), senão o texto volta a vazar com categorias de nome longo.
+
 ## Simulações
 
 Simulações podem ser editadas (modal simples: nome, descrição, título do produto salvo).
@@ -412,6 +478,22 @@ Nesta sessão, em sequência:
 6. **Refactor completo de arquitetura do backend**: de `backend/internal/<entidade>/{entity,handler,repository,repository_postgres,request}.go` (mais `core/` e `infra/` soltos) para `backend/internal/domain/<entidade>/{model,repository,repository_postgres,service,controller,request}.go` + `backend/internal/domain/shared/` + `backend/internal/infrastructure/`. Cada entidade ganhou uma camada `service.go` que antes não existia (a regra de negócio — validação de request, orquestração — vivia dentro do `handler.go`). `Handler`/`NewHandler` viraram `Controller`/`NewController` em todo o backend. `routes.go` continua centralizado (decisão explícita, ao contrário do projeto de referência que inspirou a estrutura). Testes de `service.go` adicionados para `product`, `simulation`, `preferences`, `identity` (usando fakes de repository em memória, possível porque os repositories já eram interfaces). Validado com `go build`, `go vet`, `go test` (todos limpos) e smoke test completo end-to-end via Docker (login/logout, cálculo de preço com canal, CRUD de produto, listagem de simulações, Taxas e Custos).
 
 Branch de trabalho: `develop`, depois merge fast-forward em `main` (sem conflitos — `main` sempre foi um ancestral direto de `develop` neste projeto até agora).
+
+### Sessão Financeiro (2026-08-01)
+
+Nesta sessão, em sequência:
+
+1. **Feature Financeiro completa**: backend (`domain/finance` + migration `004_finance.sql`) e frontend (Dashboard/Transações/Categorias) — detalhes na seção "Financeiro (feature nova)" acima.
+2. **Navegação do Financeiro movida para a Sidebar**: as sub-abas (Dashboard/Transações/Categorias), que inicialmente ficavam numa barra horizontal no topo do conteúdo, passaram a ficar aninhadas embaixo de "Financeiro" na Sidebar esquerda (desktop), expandindo automaticamente ao entrar em qualquer rota `/finance/*`. A barra horizontal original (`FinanceLayout.tsx`) virou `lg:hidden` — hoje só aparece em mobile, como equivalente da navegação aninhada que só existe em desktop.
+3. **Correções pedidas depois de teste manual do usuário** (dados diferentes dos meus testes escancararam bugs de layout que só aparecem com poucos dados):
+   - gráficos de linha com 1 único mês de histórico pareciam "quebrados" (um ponto solto, sem linha) → corrigido com mensagem amigável para `< 2` pontos (fix intermediário; depois os dois gráficos de linha foram removidos de vez, ver item 4 abaixo);
+   - legenda do donut cortava categorias e as fatias não tinham tooltip → corrigido com legenda empilhada rolável e `<title>` em cada fatia;
+   - texto central do donut (Total/valor/%) vazava por cima do anel colorido com categorias/valores maiores → corrigido aumentando o donut (140→200px) e limitando o texto a `max-w-[112px]`;
+   - header (`Topbar.tsx`) ficava `sticky` grudado no topo ao rolar o Dashboard → removido `sticky top-0 z-20` (mudança global, todas as rotas, não só Financeiro);
+   - os dois gráficos de linha (Lucro Real / Margem de Lucro ao longo do tempo) foram removidos e substituídos por uma segunda grade 2×2 dos mesmos 4 KPIs já exibidos no topo da página (duplicação intencional, pedida explicitamente);
+   - seletor de período trocado de `<input type="date">` (dia completo) para `<input type="month">` (só mês/ano), com conversão mês→primeiro/último dia feita em `financePeriod.ts` só na camada de UI — backend continua recebendo/validando datas completas.
+
+Branch de trabalho: `develop`. **Checkpoint no momento em que esta nota foi escrita: ainda não mesclado/enviado** — feature grande, aguardando revisão do usuário antes de qualquer push (pedido explícito dele: "NÃO SUBA NADA AINDA"). Se você é um agente novo lendo isso depois do push ter acontecido, essa frase já está desatualizada — confira `git log`/`git status` em vez de confiar nela.
 
 ## Docker Local
 
@@ -537,7 +619,7 @@ frontend/src/services/auth.ts
 vercel.json
 ```
 
-Se a tarefa envolver **qualquer outro domínio do backend** (product, simulation, channel, preferences), o padrão é sempre o mesmo — `backend/internal/domain/<entidade>/{model,repository,repository_postgres,service,controller,request}.go`. Regra de negócio/validação vai em `service.go`; HTTP puro vai em `controller.go`; SQL vai em `repository_postgres.go`.
+Se a tarefa envolver **qualquer outro domínio do backend** (product, simulation, channel, preferences, finance), o padrão é sempre o mesmo — `backend/internal/domain/<entidade>/{model,repository,repository_postgres,service,controller,request}.go`. Regra de negócio/validação vai em `service.go`; HTTP puro vai em `controller.go`; SQL vai em `repository_postgres.go`.
 
 Se a tarefa envolver **inputs monetários/custos manuais**, comece por:
 
@@ -567,6 +649,18 @@ backend/internal/domain/preferences/service.go
 backend/internal/domain/preferences/model.go
 ```
 
+Se a tarefa envolver **Financeiro** (dashboard, transações, categorias), comece por:
+
+```txt
+backend/internal/domain/finance/service.go
+backend/internal/domain/finance/model.go
+frontend/src/features/finance/DashboardPage.tsx
+frontend/src/features/finance/TransactionsPage.tsx
+frontend/src/features/finance/CategoriesPage.tsx
+frontend/src/utils/financePeriod.ts
+frontend/src/components/Sidebar.tsx        (navegação aninhada do Financeiro)
+```
+
 ## Cuidados Para Novas Alterações
 
 Ao trabalhar neste projeto:
@@ -581,7 +675,7 @@ Ao trabalhar neste projeto:
 - preserve cookies HttpOnly na auth;
 - preserve `/api` como fallback de produção no frontend;
 - preserve `vercel.json` para multi-service deploy — **e lembre de adicionar qualquer rota nova do frontend ao regex de SPA fallback**;
-- ao adicionar/remover item de navegação no frontend, atualize `Sidebar.tsx` E `Topbar.tsx` (listas duplicadas, não compartilhadas);
+- ao adicionar/remover item de navegação no frontend, atualize `Sidebar.tsx`, `Topbar.tsx` e, se for sub-aba do Financeiro, também `FinanceLayout.tsx` (três listas independentes, não compartilhadas);
 - não assuma que Docker Compose vale para produção;
 - não commite segredos reais;
 - não remova `.env.example`;
@@ -593,6 +687,6 @@ Ao trabalhar neste projeto:
 
 Pense no `pricing-hub` como uma calculadora operacional de margem para vendedores de marketplace.
 
-O backend guarda usuários, preferências (incluindo modelo padrão de custos), produtos, simulações e canais, organizados em `backend/internal/domain/<entidade>/` com a cadeia `controller → service → repository` e `backend/internal/infrastructure/` para tudo que é framework/banco/integração externa. O domínio calcula preço/lucro usando centavos e basis points, centralizado em `PricingService`. O frontend fornece uma experiência visual escura, com formulário de precificação (canal + produto cadastrado + quantidade → custo automático → preço de venda), listas em tabela para produtos e simulações, um modelo padrão de custos configurável (Taxas e Custos) e salvamento/edição de simulações.
+O backend guarda usuários, preferências (incluindo modelo padrão de custos), produtos, simulações, canais e lançamentos financeiros, organizados em `backend/internal/domain/<entidade>/` com a cadeia `controller → service → repository` e `backend/internal/infrastructure/` para tudo que é framework/banco/integração externa. O domínio calcula preço/lucro usando centavos e basis points, centralizado em `PricingService`. O frontend fornece uma experiência visual escura, com formulário de precificação (canal + produto cadastrado + quantidade → custo automático → preço de venda), listas em tabela para produtos e simulações, um modelo padrão de custos configurável (Taxas e Custos), salvamento/edição de simulações, e uma aba Financeiro para lançar totais de receita/despesa por categoria e período com dashboard de DRE (KPIs, composição de custos em donut, comparação com período anterior).
 
-O projeto já está em produção na Vercel. Pontos sensíveis: manter a fronteira correta entre `domain` e `infrastructure`, lembrar que o banco de produção não vem do Docker, reconstruir as imagens Docker locais quando precisar ver mudanças recentes, manter o regex de SPA fallback do `vercel.json` sincronizado com as rotas do React Router, e manter `Sidebar.tsx`/`Topbar.tsx` sincronizados manualmente (não compartilham a lista de navegação).
+O projeto já está em produção na Vercel. Pontos sensíveis: manter a fronteira correta entre `domain` e `infrastructure`, lembrar que o banco de produção não vem do Docker, reconstruir as imagens Docker locais quando precisar ver mudanças recentes, manter o regex de SPA fallback do `vercel.json` sincronizado com as rotas do React Router, e manter `Sidebar.tsx`/`Topbar.tsx`/`FinanceLayout.tsx` sincronizados manualmente (não compartilham a lista de navegação).

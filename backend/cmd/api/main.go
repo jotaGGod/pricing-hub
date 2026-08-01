@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"pricing-hub/backend/internal/domain/channel"
+	"pricing-hub/backend/internal/domain/finance"
 	"pricing-hub/backend/internal/domain/identity"
 	"pricing-hub/backend/internal/domain/preferences"
 	"pricing-hub/backend/internal/domain/pricing"
@@ -55,6 +56,8 @@ func main() {
 	channelRepo := channel.NewPostgresRepository(db)
 	productRepo := product.NewPostgresRepository(db)
 	simulationRepo := simulation.NewPostgresRepository(db)
+	financeCategoryRepo := finance.NewPostgresCategoryRepository(db)
+	financeTransactionRepo := finance.NewPostgresTransactionRepository(db)
 
 	tokenService := auth.NewTokenService(cfg)
 	googleOAuth := googleoauth.NewGoogleOAuth(cfg)
@@ -65,6 +68,7 @@ func main() {
 	productService := product.NewService(productRepo)
 	simulationService := simulation.NewService(simulationRepo)
 	preferenceService := preferences.NewService(preferenceRepo)
+	financeService := finance.NewService(financeCategoryRepo, financeTransactionRepo)
 
 	identityController := identity.NewController(cfg, identityService)
 	channelController := channel.NewController(channelService)
@@ -72,6 +76,7 @@ func main() {
 	productController := product.NewController(productService)
 	simulationController := simulation.NewController(simulationService)
 	preferenceController := preferences.NewController(preferenceService)
+	financeController := finance.NewController(financeService)
 
 	app := fiber.New(fiber.Config{
 		AppName: "pricing-hub",
@@ -107,6 +112,7 @@ func main() {
 		productController,
 		simulationController,
 		preferenceController,
+		financeController,
 	)
 
 	go func() {
