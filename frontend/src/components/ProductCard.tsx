@@ -133,7 +133,7 @@ export function ProductCard({ value, onChange, products, channels }: ProductCard
         <MoneyInput label="Custo do produto" value={value.product_cost_cents} onChange={() => undefined} disabled />
 
         <div className="block space-y-1.5 md:col-span-2">
-          <span className="field-label flex items-center gap-1.5 text-ember dark:text-pink-200">
+          <span className="field-label flex items-center gap-1.5 text-ember dark:text-orange-200">
             <BadgeDollarSign size={14} />
             Preço de venda
           </span>
@@ -141,7 +141,7 @@ export function ProductCard({ value, onChange, products, channels }: ProductCard
             label="Preço de venda"
             hideLabel
             value={value.sale_price_cents ?? 0}
-            inputClassName="border-ember/60 bg-ember/[0.055] text-center text-base font-bold tabular-nums text-ember shadow-[0_0_0_3px_rgba(255,63,135,0.07),0_8px_20px_rgba(255,63,135,0.08)] dark:border-ember/45 dark:bg-ember/[0.08] dark:text-pink-100"
+            inputClassName="border-ember/60 bg-ember/[0.055] text-center text-base font-bold tabular-nums text-ember shadow-[0_0_0_3px_rgba(252,76,2,0.07),0_8px_20px_rgba(252,76,2,0.08)] dark:border-ember/45 dark:bg-ember/[0.08] dark:text-orange-100"
             onChange={(sale_price_cents) =>
               onChange({
                 ...value,

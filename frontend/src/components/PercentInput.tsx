@@ -13,7 +13,7 @@ export function PercentInput({ label, value, onChange, hideLabel = false }: Perc
       {hideLabel ? null : <span className="field-label">{label}</span>}
       <div className="relative">
         <input
-          className="input-base pr-10"
+          className="input-base text-figure pr-10"
           aria-label={label}
           inputMode="decimal"
           value={bpsToPercentInput(value)}

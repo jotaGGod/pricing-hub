@@ -125,7 +125,7 @@ export function CategoriesPage() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-3xl font-black">Categorias</h1>
+          <h1 className="text-display text-[34px] leading-none sm:text-[40px]">Categorias</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Cadastre e gerencie as categorias de receitas e despesas usadas nas suas transações.
           </p>
@@ -208,7 +208,7 @@ export function CategoriesPage() {
                     <span className="flex items-center gap-2 font-semibold">
                       <span
                         className={[
-                          "grid h-7 w-7 shrink-0 place-items-center rounded-[8px]",
+                          "grid h-7 w-7 shrink-0 place-items-center rounded-full",
                           category.kind === "income"
                             ? "bg-emerald-500/10 text-emerald-500"
                             : "bg-ember/10 text-ember"
@@ -329,7 +329,7 @@ export function CategoriesPage() {
 
               <div className="space-y-1.5">
                 <span className="field-label">Ícone</span>
-                <div className="grid max-h-40 grid-cols-8 gap-1.5 overflow-y-auto rounded-[10px] border border-slate-200 p-2 dark:border-line">
+                <div className="grid max-h-40 grid-cols-8 gap-1.5 overflow-y-auto rounded-2xl border border-slate-200 p-2 dark:border-line">
                   {financeIconNames.map((name) => (
                     <button
                       key={name}
@@ -338,7 +338,7 @@ export function CategoriesPage() {
                       aria-label={`Ícone ${name}`}
                       onClick={() => setDraft({ ...draft, icon: name })}
                       className={[
-                        "grid h-9 place-items-center rounded-[8px] border transition",
+                        "grid h-9 place-items-center rounded-xl border transition",
                         draft.icon === name
                           ? "border-ember bg-ember text-white"
                           : "border-slate-200 text-slate-500 hover:border-ember/60 hover:text-ember dark:border-line dark:text-slate-300"
@@ -392,12 +392,12 @@ function SummaryCard({
 }) {
   return (
     <section className="glass-card flex items-center gap-3 p-4">
-      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-slate-900/[0.04] dark:bg-white/[0.06] ${tone}`}>
+      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-slate-900/[0.04] dark:bg-white/[0.06] ${tone}`}>
         {icon}
       </span>
       <div className="min-w-0">
         <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
-        <p className={`text-2xl font-black ${tone}`}>{value}</p>
+        <p className={`text-figure text-2xl font-bold ${tone}`}>{value}</p>
         <p className="text-xs text-slate-400">{hint}</p>
       </div>
     </section>
@@ -431,9 +431,9 @@ function FilterTab({
       type="button"
       onClick={onClick}
       className={[
-        "h-9 rounded-[10px] px-3 text-sm font-semibold transition",
+        "h-9 rounded-full px-3.5 text-sm font-semibold transition duration-150 ease-snap",
         active
-          ? "bg-ember/10 text-ember dark:bg-ember/15 dark:text-pink-200"
+          ? "bg-ember/10 text-ember dark:bg-ember/15 dark:text-orange-200"
           : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10"
       ].join(" ")}
     >
@@ -462,7 +462,7 @@ function KindOption({
       type="button"
       onClick={onClick}
       className={[
-        "flex h-11 items-center justify-center gap-2 rounded-[10px] border text-sm font-bold transition",
+        "flex h-11 items-center justify-center gap-2 rounded-full border text-sm font-bold transition duration-150 ease-snap",
         selected
           ? selectedClass
           : "border-slate-200 text-slate-500 hover:border-slate-300 dark:border-line dark:text-slate-400"

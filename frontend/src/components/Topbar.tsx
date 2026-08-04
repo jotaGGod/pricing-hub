@@ -26,9 +26,9 @@ export function Topbar() {
               to={item.to}
               className={({ isActive }) =>
                 [
-                  "flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-[10px] px-2 text-xs font-semibold transition",
+                  "flex h-10 min-w-10 items-center justify-center gap-1.5 rounded-full px-2.5 text-xs font-semibold transition duration-150 ease-snap",
                   isActive
-                    ? "bg-ember/10 text-ember dark:bg-ember/15 dark:text-pink-200"
+                    ? "bg-ember/10 text-ember dark:bg-ember/15 dark:text-orange-200"
                     : "text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10"
                 ].join(" ")
               }

@@ -49,7 +49,7 @@ export function MoneyInput({
       {hideLabel ? null : <span className="field-label">{label}</span>}
       <input
         type="number"
-        className={`input-base ${disabled ? "cursor-not-allowed opacity-60" : ""} ${inputClassName}`}
+        className={`input-base text-figure ${disabled ? "cursor-not-allowed opacity-60" : ""} ${inputClassName}`}
         aria-label={label}
         inputMode="decimal"
         min="0"

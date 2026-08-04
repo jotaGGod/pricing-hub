@@ -320,9 +320,10 @@ Rotas principais:
 - `/login`
 - `/register`
 - `/pricing`
-- `/finance` (nova — ver seção "Financeiro"; índice redireciona para `/finance/dashboard`)
+- `/finance` (ver seção "Financeiro"; índice redireciona para `/finance/dashboard`)
   - `/finance/dashboard`
   - `/finance/transactions`
+  - `/finance/dre`
   - `/finance/categories`
 - `/products`
 - `/simulations`
@@ -331,13 +332,47 @@ Rotas principais:
 
 A rota principal da aplicação é `/pricing`. Tema escuro é o padrão.
 
-**Importante**: existe navegação duplicada em TRÊS lugares (não dois):
+**Importante — `/products`, `/simulations` e `/taxes` NÃO são sub-rotas de `/pricing` no React Router.** Elas continuam sendo rotas de primeiro nível, independentes, cada uma com sua própria `<Route path="..." element={...} />` em `AppRoutes.tsx` (ao contrário de `/finance/*`, que É de fato aninhado sob um `<Route path="/finance" element={<FinanceLayout />}>`). O agrupamento "Precificador" visto na Sidebar é **puramente visual/de navegação** — a Sidebar decide mostrar Produtos/Simulações/Taxas e Custos como se fossem filhas de Precificador, mas as URLs continuam soltas. Não tente "consertar" isso aninhando de verdade as rotas sem pedido explícito: mudaria as URLs existentes (quebraria bookmarks/links) e não é necessário para o efeito visual pedido.
 
-- `frontend/src/components/Sidebar.tsx` (desktop, `lg:block`) — array `navItems` para os itens de topo, mais um bloco expansível "Financeiro" com array próprio `financeSubItems` (Dashboard/Transações/Categorias) que expande/recolhe (`financeExpanded`, com `useEffect` auto-expandindo quando `location.pathname` começa com `/finance`);
-- `frontend/src/components/Topbar.tsx` (mobile, `lg:hidden`, array `mobileItems`) — tem um item "Financeiro" que leva a `/finance`, sem sub-itens (só o ícone);
-- `frontend/src/features/finance/FinanceLayout.tsx` — barra de sub-abas (Dashboard/Transações/Categorias) com `lg:hidden`: é o equivalente mobile da navegação aninhada que só existe em desktop na Sidebar.
+**Navegação duplicada em múltiplos lugares — cuidado ao adicionar/remover itens de menu:**
 
-Ao adicionar/remover uma rota do menu, verifique os três. Se for uma sub-aba do Financeiro especificamente, `Sidebar.tsx` (`financeSubItems`) e `FinanceLayout.tsx` (`subTabs`) têm listas independentes com os mesmos itens — as duas precisam mudar junto.
+- `frontend/src/components/Sidebar.tsx` (desktop, `lg:block`) é a fonte da verdade do agrupamento visual. Usa um componente interno `NavGroup` (label + ícone + rota do "pai" + lista de `subItems` + estado `expanded`) renderizado duas vezes: uma para "Precificador" (`subItems` = Produtos/Simulações/Taxas e Custos) e outra para "Financeiro" (`subItems` = Dashboard/Transações/DRE/Categorias). Cada `NavGroup` tem DOIS alvos de clique independentes lado a lado — não é um único botão:
+  - o **label** (ícone + texto, um `NavLink` para a rota "pai" do grupo — `/pricing` ou `/finance/dashboard`) sempre navega, e ao navegar também garante `expanded = true` (entrar numa seção sempre revela as sub-abas);
+  - a **seta/chevron** (`<button>` separado, à direita) SÓ alterna `expanded` (`setExpanded(v => !v)`) — nunca navega, e funciona **independente da rota atual**: dá pra expandir/recolher as sub-abas do Financeiro estando em `/pricing`, e vice-versa. Não existe mais nenhum `useEffect` de auto-expand por mudança de rota — o estado de expandido/recolhido é 100% controlado por esses dois handlers, sem lógica escondida disputando o mesmo estado (isso já causou um bug real: um `onClick` antigo que fazia `setFinanceExpanded(true)` incondicionalmente tornava impossível recolher).
+- `frontend/src/components/Topbar.tsx` (mobile, `lg:hidden`, array `mobileItems`) continua uma lista FLAT (Precificador não vira grupo aqui) — Produtos/Simulações/Taxas e Financeiro aparecem como ícones soltos, sem agrupamento nem sub-abas visíveis nessa barra.
+- `frontend/src/features/finance/FinanceLayout.tsx` — barra de sub-abas (Dashboard/Transações/DRE/Categorias) com `lg:hidden`: é o equivalente mobile da navegação aninhada do Financeiro na Sidebar.
+- **Não existe um "PricingLayout" equivalente ao `FinanceLayout.tsx`** — como Produtos/Simulações/Taxas são rotas soltas (não aninhadas sob `/pricing`), não há uma barra de sub-abas mobile pra elas; no mobile, cada uma continua acessível só pelo ícone flat no `Topbar.tsx`. Essa é uma assimetria real entre os dois grupos, não um esquecimento.
+
+Ao adicionar/remover uma rota do menu: se for sub-item do Financeiro, atualize `Sidebar.tsx` (`financeSubItems`) E `FinanceLayout.tsx` (`subTabs`) — duas listas independentes com os mesmos itens. Se for sub-item do Precificador, só `Sidebar.tsx` (`pricingSubItems`) precisa mudar (não há segunda lista, pela assimetria acima).
+
+## Design Visual
+
+**Reformulação completa em 2026-08-03**, inspirada na linguagem visual do app `roadtrip_planner` dentro de `/Users/jacks/Documents/Dev/Projetos/claude-cookbooks/managed_agents/roadtrip_planner` (referência pontual, não uma dependência do projeto — só copiamos a linguagem visual, não código). Antes disso o app usava rosa/ember (`#ff3f87`), fonte de sistema em tudo, e cantos `rounded-[10px]`/`rounded-[12px]` nos botões.
+
+Tokens centrais (não redeclare esses valores soltos em componentes — sempre pelos tokens):
+
+```txt
+frontend/tailwind.config.js   # colors.ember (#fc4c02), colors.emberHover (#ff5a14), colors.panel2,
+                               #   colors.well, fontFamily.sans/display/mono, boxShadow.glow,
+                               #   transitionTimingFunction.snap
+frontend/src/styles.css       # @import das fontes do Google Fonts (Inter, Barlow Condensed,
+                               #   JetBrains Mono); .text-display, .text-figure (ver abaixo);
+                               #   .glass-card, .btn-primary, .btn-secondary, .icon-btn, .input-base,
+                               #   .field-label, .section-title
+frontend/public/favicon.svg   # mesma cor ember
+```
+
+Regras da linguagem visual:
+
+- **Cor de destaque é laranja `#fc4c02`** (token `ember` — o NOME do token não mudou, só o valor hex, então `text-ember`/`bg-ember`/`border-ember` em qualquer lugar já pegam a cor nova automaticamente). Hover usa `emberHover` (`#ff5a14`). Nunca hardcode `rgba(255, 63, 135, ...)` (rosa antigo) ou classes `pink-*` do Tailwind — a paleta `pink-*` built-in do Tailwind é uma cor DIFERENTE do token `ember` e não muda com ele; use `orange-*` (built-in) para variações/tons claros de texto em dark mode (ex.: `dark:text-orange-200`), nunca `pink-*`.
+- **Três famílias de fonte, cada uma com um papel fixo**:
+  - `font-sans` (Inter) — texto de UI padrão, é o default do body, não precisa aplicar manualmente;
+  - `font-display` (Barlow Condensed) — só para títulos de página. Use a classe utilitária `.text-display` (definida em `styles.css`: `font-display font-extrabold uppercase tracking-wide`), sempre combinada com um tamanho, ex. `className="text-display text-[34px] leading-none sm:text-[40px]"`. Todo `<h1>` de página principal (Precificador, Produtos, Simulações, Taxas e Custos, Ajustes, Dashboard, Transações, DRE, Categorias) segue esse mesmo padrão — se criar uma tela nova, repita-o;
+  - `font-mono` (JetBrains Mono) — todo número que é "dado" (dinheiro, percentual, contagem, quantidade). Use a classe `.text-figure` (`font-mono tabular-nums`) no elemento que mostra o valor. `MoneyInput.tsx` e `PercentInput.tsx` já aplicam `text-figure` na própria base — qualquer tela que usa esses componentes ganha o tratamento de graça, não precisa repetir. Em textos que MISTURAM número com prosa (ex.: "↑ 12,5% vs período anterior"), aplique `.text-figure` no contêiner e `font-sans` explicitamente de volta na parte de prosa (ver `ChangeLabel` em `DashboardPage.tsx` como exemplo) — não deixe a frase inteira virar mono.
+- **Formas em pílula para tudo clicável**: `.btn-primary`/`.btn-secondary`/`.icon-btn` (em `styles.css`) e os itens de navegação da Sidebar/Topbar/FinanceLayout usam `rounded-full`. Abas de filtro (`FilterTab` em `CategoriesPage.tsx`/`TransactionsPage.tsx`), seletores de tipo (`KindOption`) e o `PeriodPicker` também. Cards (`.glass-card`) usam `rounded-2xl`; blocos menores dentro de cards (notice boxes, blocos de custo manual) também `rounded-2xl`. Badges de ícone "avatar" ao lado de texto (categoria na tabela, ícone do KPI) viraram círculos (`rounded-full`); grades densas de ícone (seletor de ícone de categoria) ficaram `rounded-xl` (quadrado suave), não círculo — círculos lado a lado numa grade apertada deixam espaço morto feio nos cantos.
+- **Movimento consistente**: `transition duration-150 ease-snap` (`ease-snap` = `cubic-bezier(0.2, 0, 0, 1)`, definido no Tailwind config) em qualquer hover/toggle novo.
+- **Tema claro/escuro continua existindo** (decisão explícita do usuário — a referência original é só escura, mas o pricing-hub manteve os dois). A paleta clara não ganhou tokens novos: continua usando as classes `slate-*` do Tailwind normalmente, só herdando a cor de destaque/tipografia/formas novas.
+- **`mint` (`#a3ff5f`) continua existindo e não virou laranja** — é usado como cor de "sucesso/selecionado" em contextos específicos (preço de venda calculado no `ResultsPanel`, botão "Escuro" selecionado em `ThemeSettings.tsx`), intencionalmente distinto do laranja de marca. Não troque `mint` por `ember` sem pedido explícito.
 
 ## Estado Atual da Experiência
 
@@ -405,8 +440,9 @@ Seção nova (`/finance`), no menu abaixo de "Precificador". Objetivo: o usuári
 
 Sub-rotas, todas usando o período compartilhado via `frontend/src/utils/financePeriod.ts` (persistido em `localStorage`, chave `pricing-hub:finance-period:v1` — trocar de sub-aba não reseta o período escolhido):
 
-- `/finance/dashboard` (`frontend/src/features/finance/DashboardPage.tsx`) — 4 KPIs (Faturamento Total, Lucro Real, Margem de Lucro, Despesas Totais) com variação vs. período anterior; card de composição de custos (donut SVG + legenda); DRE completa em tabela.
-- `/finance/transactions` (`frontend/src/features/finance/TransactionsPage.tsx`) — lista dos lançamentos do período + modal (backdrop desfocado) para criar/editar. Exporta `PeriodPicker`, reaproveitado pelo Dashboard.
+- `/finance/dashboard` (`frontend/src/features/finance/DashboardPage.tsx`) — gráfico de barras agrupadas (Faturamento x Despesas por mês, últimos 6 meses) ao lado de uma grade 2×2 de KPIs (Faturamento Total, Despesas Totais, Margem de Lucro, Lucro Real, nessa ordem) com variação vs. período anterior. **Não tem mais donut nem DRE** — o donut de composição de custos foi removido de vez (ver nota abaixo) e a DRE virou uma aba própria (ver linha abaixo).
+- `/finance/transactions` (`frontend/src/features/finance/TransactionsPage.tsx`) — lista dos lançamentos do período + modal (backdrop desfocado) para criar/editar. Exporta `PeriodPicker`, reaproveitado por Dashboard e DRE.
+- `/finance/dre` (`frontend/src/features/finance/DrePage.tsx`) — só a tabela de DRE (Faturamento Bruto → Deduções e Custos por categoria → Lucro Real), com seu próprio `PeriodPicker`. Era renderizada dentro do Dashboard; foi extraída pra cá a pedido do usuário. `DreTable`/`SectionRow`/`LineRow`/`InlineChange` moraram em `DashboardPage.tsx` originalmente — hoje só existem aqui.
 - `/finance/categories` (`frontend/src/features/finance/CategoriesPage.tsx`) — CRUD de categorias (nome, tipo receita/despesa, ícone). 12 categorias-padrão são semeadas automaticamente por usuário na primeira chamada de `ListCategories` (`defaultCategories` em `backend/internal/domain/finance/service.go`) — não vêm de uma migration.
 
 Backend: ver entrada `finance/` na árvore da seção "Arquitetura Backend" acima, mais `backend/internal/infrastructure/migrations/004_finance.sql`. Rotas registradas em `routes.go` (todas protegidas por auth): `GET/POST /finance/categories`, `PUT/DELETE /finance/categories/:id`, `GET/POST /finance/transactions`, `PUT/DELETE /finance/transactions/:id`, `GET /finance/summary`, `GET /finance/series`.
@@ -421,18 +457,19 @@ frontend/src/utils/financeIcons.tsx       # financeIcons (24 ícones lucide; cha
 frontend/src/utils/financePeriod.ts       # currentMonthPeriod, read/writeFinancePeriod,
                                            #   monthStartISODate/monthEndISODate (ver nota do seletor abaixo)
 frontend/src/features/finance/FinanceLayout.tsx     # <Outlet/> + sub-abas (nav só em mobile, lg:hidden)
-frontend/src/features/finance/DashboardPage.tsx     # KPIs + Donut + DRE
+frontend/src/features/finance/DashboardPage.tsx     # gráfico de barras + KPIs (sem donut, sem DRE)
+frontend/src/features/finance/DrePage.tsx           # só a tabela de DRE, extraída do Dashboard
 frontend/src/features/finance/TransactionsPage.tsx  # lista + modal; exporta PeriodPicker
 frontend/src/features/finance/CategoriesPage.tsx    # CRUD de categoria
 ```
 
 Decisões e detalhes não óbvios desta feature (importante ler antes de mexer):
 
-- **Seletor de período é um único campo de mês/ano** (`<input type="month">`, não `type="date"`, e não há mais "De"/"Até" — foi uma UI de range no início da sessão, mas virou um campo só depois de feedback do usuário). O usuário escolhe algo como "08/2026"; `Period.start` e `Period.end` são sempre calculados a partir do MESMO mês (primeiro e último dia dele), nunca um intervalo real entre meses diferentes. Por baixo, `Period.start`/`Period.end` continuam sendo datas ISO completas (`YYYY-MM-DD`), porque o backend segue validando/comparando por dia (`parsePeriod`, overlap de transação) — a conversão mês→primeiro/último dia acontece só na UI, em `financePeriod.ts` (`monthStartISODate`/`monthEndISODate`). Não reintroduza um seletor de range (dois campos) ou inputs de dia completo aqui sem pedido explícito.
-- **`Topbar.tsx` não é mais `sticky`** (era `sticky top-0 z-20`; hoje só tem as classes de borda/fundo). Removido a pedido do usuário porque o header ficava grudado no topo ao rolar o Dashboard (página bem mais longa que as outras). É uma mudança **global**, afeta todas as rotas, não só `/finance`. Se pedirem sticky de volta, é só reintroduzir `sticky top-0 z-20` nessa linha.
-- **O Dashboard não tem gráfico de linha/série temporal** — os dois gráficos que existiam ("Lucro Real ao Longo do Tempo", "Margem de Lucro (%)") foram removidos a pedido do usuário (ficavam com aparência "quebrada" com poucos meses de histórico) e substituídos por uma segunda grade 2×2 reaproveitando os mesmos 4 `KpiCard` do topo da página. É duplicação intencional das mesmas 4 métricas na mesma tela — foi pedido assim explicitamente, não é engano.
-- **A API de série mensal continua existindo e testada** (`GET /finance/series`, `finance.Service.Series`, `services/finance.ts#getSeries`, tipo `FinanceMonthlyPoint`), só que sem nenhum consumidor no frontend depois da remoção acima. Não é dead code para apagar sem pensar — é uma capacidade pronta caso um gráfico de evolução volte em outro formato.
-- **Donut** (função `Donut` dentro de `DashboardPage.tsx`) é 200×200 (era 140×140), com o texto central (`Total` / valor / `% do faturamento`) limitado a `max-w-[112px]` para nunca vazar por cima do anel colorido. Se for aumentar o donut de novo, mantenha essa largura máxima proporcional ao raio interno (`radius - strokeWidth/2`), senão o texto volta a vazar com categorias de nome longo.
+- **Seletor de período é um único campo de mês/ano** (`<input type="month">`, não `type="date"`, sem "De"/"Até"). O usuário escolhe algo como "08/2026"; `Period.start` e `Period.end` são sempre calculados a partir do MESMO mês (primeiro e último dia dele), nunca um intervalo real entre meses diferentes. Por baixo, `Period.start`/`Period.end` continuam sendo datas ISO completas (`YYYY-MM-DD`) — a conversão mês→primeiro/último dia acontece só na UI, em `financePeriod.ts` (`monthStartISODate`/`monthEndISODate`). O box inteiro do `PeriodPicker` (não só o input) abre o seletor nativo ao clicar, via `inputRef.current.showPicker()` — clicar em qualquer parte do "pill" (ícone, padding) deve funcionar, não só no texto do mês.
+- **`Topbar.tsx` não é mais `sticky`** (era `sticky top-0 z-20`; hoje só tem as classes de borda/fundo). Mudança **global**, afeta todas as rotas, não só `/finance`.
+- **O Dashboard tem um gráfico de barras agrupadas** (`RevenueExpenseChart` dentro de `DashboardPage.tsx`), no lugar onde antes ficava o donut de composição de custos — duas barras por mês (Faturamento em azul, Despesas em ember/rosa), usando `getSeries`/`FinanceMonthlyPoint` (6 meses terminando no mês do período selecionado). Os dois gráficos de LINHA que existiram antes ("Lucro Real ao Longo do Tempo", "Margem de Lucro (%)") foram removidos de vez — não recrie-os sem pedido explícito. Os valores exatos do gráfico de barras ficam em `<title>` (tooltip ao passar o mouse), não como texto sempre visível — com até 6 meses × 2 barras, rótulos numéricos fixos viraram poluição visual sobrepondo as barras (mesmo problema que já tinha acontecido com o donut). Se for adicionar valores visíveis de novo, priorize tooltip/legenda sobre texto fixo no gráfico.
+- **A grade 2×2 de KPIs é a ÚNICA exibição dessas 4 métricas na tela** (não existe mais duplicação com uma linha de KPIs no topo — essa linha foi removida numa rodada de ajuste anterior). Ordem atual, pedida explicitamente: Faturamento Total + Despesas Totais na linha de cima, Margem de Lucro + Lucro Real na linha de baixo (antes era Faturamento+Lucro Real / Margem+Despesas — não é a ordem "óbvia", cuidado ao reordenar de novo sem confirmar com o usuário).
+- **O donut de composição de custos foi removido do Dashboard de vez** (não só ajustado — removido, a pedido do usuário, pra dar lugar ao gráfico de barras acima). `CostCompositionCard`, `Donut`, `sliceColors` e `shareOf` não existem mais em `DashboardPage.tsx`. A quebra por categoria de despesa continua disponível — só que na DRE (`/finance/dre`, em tabela), não mais como gráfico. Não recrie o donut sem pedido explícito.
 
 ## Simulações
 
@@ -498,6 +535,33 @@ Nesta sessão, em sequência:
    - toggle de expandir/recolher do "Financeiro" na Sidebar tinha um bug real: o `onClick` sempre chamava `setFinanceExpanded(true)` (nunca `false`), então era impossível recolher clicando de novo. Corrigido para alternar (`setFinanceExpanded((e) => !e)`) quando já se está em `/finance/*`, mantendo a navegação automática para `/finance/dashboard` só quando o clique vem de FORA da seção (ex.: estando em `/pricing`).
 
 Branch de trabalho: `develop`, mesclado (`fast-forward`) em `main` e enviado para o GitHub (commit `c62daed`, 2026-08-01) — a feature Financeiro já está em ambos os branches remotos.
+
+### Sessão Navegação e Dashboard v2 (2026-08-03)
+
+Nesta sessão, em sequência:
+
+1. **Gráfico de barras no Dashboard**: as duas colunas removidas na sessão anterior nunca voltaram como linha — em vez disso, `RevenueExpenseChart` (barras agrupadas Faturamento x Despesas por mês) foi adicionado, reaproveitando a API `getSeries`/`FinanceMonthlyPoint` que já existia mas estava sem uso.
+2. **DRE virou aba própria** (`/finance/dre`, `DrePage.tsx`): `DreTable`/`SectionRow`/`LineRow`/`InlineChange` saíram de `DashboardPage.tsx` para esse arquivo novo, com seu próprio `PeriodPicker`/fetch de `getSummary`.
+3. **`PeriodPicker` clicável em qualquer ponto do box**: antes só clicar exatamente no texto/ícone nativo do `<input type="month">` abria o calendário; agora o `<div>` inteiro chama `inputRef.current.showPicker()` num `onClick`, com fallback pra `.focus()` se `showPicker` não existir/lançar erro.
+4. **Grade 2×2 de KPIs reordenada**: Faturamento Total + Despesas Totais em cima, Margem de Lucro + Lucro Real embaixo (era Faturamento+Lucro Real / Margem+Despesas).
+5. **Precificador virou grupo expansível na Sidebar**, espelhando o padrão do Financeiro: Produtos, Simulações e Taxas e Custos passaram a aparecer como sub-itens aninhados sob "Precificador" (só na Sidebar/desktop — as URLs continuam `/products`, `/simulations`, `/taxes`, soltas, não aninhadas sob `/pricing` no React Router; ver nota em "Arquitetura Frontend" acima).
+6. **Setas de expandir/recolher reescritas para serem independentes da rota atual**: `Sidebar.tsx` ganhou um componente `NavGroup` reutilizado por Precificador e Financeiro, com dois alvos de clique separados (label navega + garante expandido; seta chevron só alterna `expanded`, sem depender de qual página está ativa). Esse componente substituiu a lógica anterior (um único `<button>` fazendo as duas coisas condicionalmente, que já tinha sido corrigida uma vez nesta mesma semana e ainda assim não permitia, por exemplo, abrir as sub-abas do Financeiro estando no Precificador — bug relatado explicitamente pelo usuário).
+7. **Donut removido do Dashboard de vez** (mesmo dia, follow-up rápido depois do item 1): o card "Composição de Custos e Despesas" (donut + legenda) foi removido, e o gráfico de barras do item 1 tomou o lugar dele na grade ao lado dos KPIs — não ficaram os dois lado a lado, o donut simplesmente saiu. `CostCompositionCard`/`Donut`/`sliceColors`/`shareOf` foram deletados de `DashboardPage.tsx` (não é dead code esquecido — foi removido de propósito). A quebra de despesas por categoria continua existindo, só que exclusivamente na DRE (tabela).
+
+Branch de trabalho: `develop` — checkpoint no momento em que esta nota foi escrita, ver `git log`/`git status` para o estado real de push/merge.
+
+### Sessão Redesign Visual (2026-08-03)
+
+Reformulação de toda a linguagem visual do frontend, pedida explicitamente pelo usuário ("quero algo mais bonito e atual"), usando `/Users/jacks/Documents/Dev/Projetos/claude-cookbooks/managed_agents/roadtrip_planner` como referência de estilo. Detalhes completos na seção "Design Visual" acima — resumo do que mudou:
+
+1. **Cor de marca trocada de rosa (`#ff3f87`) para laranja (`#fc4c02`)** — decisão explícita do usuário entre duas opções apresentadas (manter rosa vs. adotar o laranja da referência). Tocou `tailwind.config.js`, `styles.css`, `favicon.svg`, e todo literal hardcoded de rosa espalhado pelo código (`rgba(255,63,135,...)`, `text-pink-200`, `text-pink-100`, `hover:bg-pink-500`) em `Sidebar.tsx`, `Topbar.tsx`, `ProductCard.tsx`, `FinanceLayout.tsx`, `CategoriesPage.tsx`, `TransactionsPage.tsx`, `DashboardPage.tsx`.
+2. **Tipografia trocada de fonte de sistema para 3 famílias com papéis fixos** (Barlow Condensed para títulos, Inter para UI, JetBrains Mono para números) — ver classes `.text-display`/`.text-figure` em `styles.css`.
+3. **Formas trocadas de cantos retos (`rounded-[10px]` etc.) para pílula** (`rounded-full`) em botões/abas/badges, e cards ganharam raio maior (`rounded-2xl`).
+4. **Tema claro/escuro foi mantido** (não virou dark-only como a referência) — decisão explícita do usuário; a paleta clara continua em `slate-*`, só herdando a cor/tipografia/formas novas.
+5. Rollout em duas etapas combinadas com o usuário: primeiro só a base (Sidebar, Topbar, tokens, tela do Precificador) pra validar a direção, depois o restante das telas (Financeiro completo, Produtos, Simulações, Taxas e Custos, Ajustes, Login/Registro) na mesma sessão após aprovação.
+6. Ajuste fino pós-validação: valores de KPI em mono ficavam ligeiramente mais largos que a fonte antiga e estouravam cards de 2 colunas no mobile — `KpiCard` em `DashboardPage.tsx` ganhou `text-xl sm:text-2xl` (era `text-2xl` fixo) para caber.
+
+Validado nos dois temas (claro/escuro), desktop e mobile, em todas as telas, via Docker. Branch de trabalho: `develop` — checkpoint no momento em que esta nota foi escrita, ver `git log`/`git status` para o estado real de push/merge.
 
 ## Docker Local
 
@@ -653,17 +717,37 @@ backend/internal/domain/preferences/service.go
 backend/internal/domain/preferences/model.go
 ```
 
-Se a tarefa envolver **Financeiro** (dashboard, transações, categorias), comece por:
+Se a tarefa envolver **Financeiro** (dashboard, transações, DRE, categorias), comece por:
 
 ```txt
 backend/internal/domain/finance/service.go
 backend/internal/domain/finance/model.go
 frontend/src/features/finance/DashboardPage.tsx
+frontend/src/features/finance/DrePage.tsx
 frontend/src/features/finance/TransactionsPage.tsx
 frontend/src/features/finance/CategoriesPage.tsx
 frontend/src/utils/financePeriod.ts
 frontend/src/components/Sidebar.tsx        (navegação aninhada do Financeiro)
 ```
+
+Se a tarefa envolver **navegação/menu lateral** (Sidebar, agrupamento de abas, expandir/recolher), comece por:
+
+```txt
+frontend/src/components/Sidebar.tsx              (componente NavGroup, arrays pricingSubItems/financeSubItems)
+frontend/src/components/Topbar.tsx               (lista flat do mobile, não agrupada)
+frontend/src/features/finance/FinanceLayout.tsx  (sub-abas mobile do Financeiro)
+frontend/src/routes/AppRoutes.tsx                (URLs reais — Produtos/Simulações/Taxas não são
+                                                    de fato aninhadas sob /pricing, só a Sidebar agrupa)
+```
+
+Se a tarefa envolver **design visual** (cor, tipografia, formas, um componente/tela nova que precisa "parecer com o resto"), comece por:
+
+```txt
+frontend/tailwind.config.js   (tokens: colors.ember, fontFamily.display/mono, transitionTimingFunction.snap)
+frontend/src/styles.css       (.text-display, .text-figure, .glass-card, .btn-primary/.btn-secondary/.icon-btn)
+```
+
+Leia a seção "Design Visual" acima antes de estilizar algo novo — ela documenta o papel de cada fonte, quando usar `rounded-full` vs `rounded-2xl` vs `rounded-xl`, e por que `mint` não virou laranja.
 
 ## Cuidados Para Novas Alterações
 
@@ -679,7 +763,9 @@ Ao trabalhar neste projeto:
 - preserve cookies HttpOnly na auth;
 - preserve `/api` como fallback de produção no frontend;
 - preserve `vercel.json` para multi-service deploy — **e lembre de adicionar qualquer rota nova do frontend ao regex de SPA fallback**;
-- ao adicionar/remover item de navegação no frontend, atualize `Sidebar.tsx`, `Topbar.tsx` e, se for sub-aba do Financeiro, também `FinanceLayout.tsx` (três listas independentes, não compartilhadas);
+- ao adicionar/remover item de navegação no frontend, atualize `Sidebar.tsx`, `Topbar.tsx` e, se for sub-aba do Financeiro, também `FinanceLayout.tsx` (listas independentes, não compartilhadas — ver seção "Arquitetura Frontend" para a assimetria entre o grupo Precificador, que só existe em `Sidebar.tsx`, e o grupo Financeiro, que também tem `FinanceLayout.tsx` como equivalente mobile);
+- na Sidebar, a seta/chevron de um grupo (`NavGroup`) deve sempre só alternar `expanded`, nunca navegar nem depender de qual rota está ativa — é um requisito explícito do usuário, já quebrado e corrigido uma vez;
+- **respeite os tokens de design** (ver seção "Design Visual"): cor de destaque só via `text-ember`/`bg-ember`/`border-ember` (nunca `pink-*` do Tailwind nem hex solto); título de página novo usa `.text-display`; número que é dado (dinheiro, %, contagem) usa `.text-figure`; botão/aba/badge novo usa `rounded-full`; card novo usa `rounded-2xl`; não hardcode `rounded-[Npx]` sem necessidade real;
 - não assuma que Docker Compose vale para produção;
 - não commite segredos reais;
 - não remova `.env.example`;
@@ -691,6 +777,6 @@ Ao trabalhar neste projeto:
 
 Pense no `pricing-hub` como uma calculadora operacional de margem para vendedores de marketplace.
 
-O backend guarda usuários, preferências (incluindo modelo padrão de custos), produtos, simulações, canais e lançamentos financeiros, organizados em `backend/internal/domain/<entidade>/` com a cadeia `controller → service → repository` e `backend/internal/infrastructure/` para tudo que é framework/banco/integração externa. O domínio calcula preço/lucro usando centavos e basis points, centralizado em `PricingService`. O frontend fornece uma experiência visual escura, com formulário de precificação (canal + produto cadastrado + quantidade → custo automático → preço de venda), listas em tabela para produtos e simulações, um modelo padrão de custos configurável (Taxas e Custos), salvamento/edição de simulações, e uma aba Financeiro para lançar totais de receita/despesa por categoria e período com dashboard de DRE (KPIs, composição de custos em donut, comparação com período anterior).
+O backend guarda usuários, preferências (incluindo modelo padrão de custos), produtos, simulações, canais e lançamentos financeiros, organizados em `backend/internal/domain/<entidade>/` com a cadeia `controller → service → repository` e `backend/internal/infrastructure/` para tudo que é framework/banco/integração externa. O domínio calcula preço/lucro usando centavos e basis points, centralizado em `PricingService`. O frontend tem tema claro/escuro alternável (escuro é o padrão), identidade visual laranja com tipografia condensada nos títulos e números em monoespaçada (ver "Design Visual"), com formulário de precificação (canal + produto cadastrado + quantidade → custo automático → preço de venda), listas em tabela para produtos e simulações, um modelo padrão de custos configurável (Taxas e Custos), salvamento/edição de simulações, e uma aba Financeiro para lançar totais de receita/despesa por categoria e período com dashboard de lucratividade (KPIs, gráfico de barras Faturamento x Despesas por mês — sem donut, removido) e uma DRE em aba própria. Na Sidebar, "Precificador" e "Financeiro" são ambos grupos expansíveis com sub-abas (Produtos/Simulações/Taxas e Custos; Dashboard/Transações/DRE/Categorias), cada um com seta de expandir/recolher independente da rota atual.
 
-O projeto já está em produção na Vercel. Pontos sensíveis: manter a fronteira correta entre `domain` e `infrastructure`, lembrar que o banco de produção não vem do Docker, reconstruir as imagens Docker locais quando precisar ver mudanças recentes, manter o regex de SPA fallback do `vercel.json` sincronizado com as rotas do React Router, e manter `Sidebar.tsx`/`Topbar.tsx`/`FinanceLayout.tsx` sincronizados manualmente (não compartilham a lista de navegação).
+O projeto já está em produção na Vercel. Pontos sensíveis: manter a fronteira correta entre `domain` e `infrastructure`, lembrar que o banco de produção não vem do Docker, reconstruir as imagens Docker locais quando precisar ver mudanças recentes, manter o regex de SPA fallback do `vercel.json` sincronizado com as rotas do React Router, e manter `Sidebar.tsx`/`Topbar.tsx`/`FinanceLayout.tsx` sincronizados manualmente (não compartilham a lista de navegação; Produtos/Simulações/Taxas não são de fato aninhadas sob `/pricing` nas URLs, só na Sidebar).

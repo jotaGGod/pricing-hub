@@ -304,7 +304,7 @@ export function PricingPage() {
     <div className="space-y-3">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-[28px] font-bold leading-tight tracking-normal sm:text-[32px]">Precificador</h1>
+          <h1 className="text-display text-[34px] leading-none sm:text-[40px]">Precificador</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Cálculo para precificação de produtos</p>
         </div>
         <div className="no-print grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:justify-end">
@@ -340,7 +340,7 @@ export function PricingPage() {
       </div>
 
       {notice ? (
-        <div className="rounded-[10px] border border-mint/30 bg-mint/10 px-3 py-2.5 text-sm font-semibold text-emerald-700 dark:text-mint">
+        <div className="rounded-2xl border border-mint/30 bg-mint/10 px-3 py-2.5 text-sm font-semibold text-emerald-700 dark:text-mint">
           {notice}
         </div>
       ) : null}
@@ -441,7 +441,7 @@ function ChannelOptionsPanel({
         {channel.fee_rules.options.map((option) => (
           <label
             key={option.code}
-            className="flex min-h-10 items-center justify-between gap-3 rounded-[10px] border border-slate-200/80 px-3 py-2 text-sm font-semibold dark:border-line"
+            className="flex min-h-10 items-center justify-between gap-3 rounded-full border border-slate-200/80 px-3 py-2 text-sm font-semibold dark:border-line"
           >
             <span>{option.label}</span>
             <input

@@ -54,7 +54,7 @@ export function TaxesPage() {
   return (
     <div className="max-w-3xl space-y-5">
       <div>
-        <h1 className="text-3xl font-black">Taxas e Custos</h1>
+        <h1 className="text-display text-[34px] leading-none sm:text-[40px]">Taxas e Custos</h1>
         <p className="mt-2 text-slate-500 dark:text-slate-400">
           Defina um modelo padrão de impostos, ads, custos fixos e taxas extras. Esses valores entram
           pré-preenchidos ao iniciar uma nova precificação, mas continuam livres para alterar manualmente na tela do
@@ -63,7 +63,7 @@ export function TaxesPage() {
       </div>
 
       {notice ? (
-        <div className="rounded-[10px] border border-mint/30 bg-mint/10 px-3 py-2.5 text-sm font-semibold text-emerald-700 dark:text-mint">
+        <div className="rounded-2xl border border-mint/30 bg-mint/10 px-3 py-2.5 text-sm font-semibold text-emerald-700 dark:text-mint">
           {notice}
         </div>
       ) : null}

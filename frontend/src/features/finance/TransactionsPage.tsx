@@ -13,7 +13,7 @@ import {
   Wallet,
   X
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MoneyInput } from "../../components/MoneyInput";
 import {
   createTransaction,
@@ -201,7 +201,7 @@ export function TransactionsPage() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <h1 className="text-3xl font-black">Transações</h1>
+          <h1 className="text-display text-[34px] leading-none sm:text-[40px]">Transações</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Lance os totais de receitas e despesas do período. Esses valores alimentam o Dashboard.
           </p>
@@ -291,7 +291,7 @@ export function TransactionsPage() {
                     <span className="flex items-center gap-2 font-semibold">
                       <span
                         className={[
-                          "grid h-7 w-7 shrink-0 place-items-center rounded-[8px]",
+                          "grid h-7 w-7 shrink-0 place-items-center rounded-full",
                           transaction.kind === "income"
                             ? "bg-emerald-500/10 text-emerald-500"
                             : "bg-ember/10 text-ember"
@@ -307,13 +307,13 @@ export function TransactionsPage() {
                   </td>
                   <td
                     className={[
-                      "whitespace-nowrap px-4 py-1.5 font-bold",
+                      "text-figure whitespace-nowrap px-4 py-1.5 font-bold",
                       transaction.kind === "income" ? "text-emerald-500" : "text-ember"
                     ].join(" ")}
                   >
                     {formatBRL(transaction.amount_cents)}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-1.5 text-slate-500 dark:text-slate-400">
+                  <td className="text-figure whitespace-nowrap px-4 py-1.5 text-slate-500 dark:text-slate-400">
                     {revenue > 0 ? formatBPS(Math.trunc((transaction.amount_cents * 10000) / revenue)) : "—"}
                   </td>
                   <td className="max-w-[260px] truncate px-4 py-1.5 text-slate-500 dark:text-slate-400">
@@ -359,14 +359,14 @@ export function TransactionsPage() {
         {visible.length > 0 ? (
           <div className="flex flex-wrap justify-between gap-3 border-t border-slate-200 px-4 py-2.5 text-sm dark:border-line">
             <span className="text-slate-500 dark:text-slate-400">
-              Total de lançamentos: <strong className="text-ember">{visible.length}</strong>
+              Total de lançamentos: <strong className="text-figure text-ember">{visible.length}</strong>
             </span>
             <span className="flex flex-wrap gap-4">
               <span className="text-slate-500 dark:text-slate-400">
-                Receitas: <strong className="text-emerald-500">{formatBRL(revenue)}</strong>
+                Receitas: <strong className="text-figure text-emerald-500">{formatBRL(revenue)}</strong>
               </span>
               <span className="text-slate-500 dark:text-slate-400">
-                Despesas: <strong className="text-ember">{formatBRL(expense)}</strong>
+                Despesas: <strong className="text-figure text-ember">{formatBRL(expense)}</strong>
               </span>
             </span>
           </div>
@@ -456,12 +456,32 @@ export function TransactionsPage() {
 }
 
 export function PeriodPicker({ period, onChange }: { period: Period; onChange: (period: Period) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  function openPicker() {
+    try {
+      inputRef.current?.showPicker();
+    } catch {
+      // showPicker() needs browser support and a direct user gesture; falling
+      // back to focus still lets the user open it via keyboard/native icon.
+      inputRef.current?.focus();
+    }
+  }
+
   return (
-    <div className="flex h-9 items-center gap-2 rounded-[10px] border border-slate-200 bg-white px-3 dark:border-line dark:bg-black/20">
+    <div
+      className="flex h-9 cursor-pointer items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 dark:border-line dark:bg-black/20"
+      onClick={(event) => {
+        if (event.target !== inputRef.current) {
+          openPicker();
+        }
+      }}
+    >
       <CalendarDays size={16} className="shrink-0 text-slate-400" />
       <input
+        ref={inputRef}
         type="month"
-        className="h-full w-[124px] border-0 bg-transparent p-0 text-sm text-slate-900 outline-none dark:text-slate-100"
+        className="h-full w-[124px] cursor-pointer border-0 bg-transparent p-0 text-sm text-slate-900 outline-none dark:text-slate-100"
         aria-label="Período (mês)"
         value={period.start.slice(0, 7)}
         onChange={(event) => {
@@ -487,12 +507,12 @@ function MetricCard({
 }) {
   return (
     <section className="glass-card flex items-center gap-3 p-4">
-      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-slate-900/[0.04] dark:bg-white/[0.06] ${tone}`}>
+      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-full bg-slate-900/[0.04] dark:bg-white/[0.06] ${tone}`}>
         {icon}
       </span>
       <div className="min-w-0">
         <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
-        <p className={`text-xl font-black ${tone}`}>{value}</p>
+        <p className={`text-figure text-xl font-bold ${tone}`}>{value}</p>
       </div>
     </section>
   );
@@ -525,9 +545,9 @@ function FilterTab({
       type="button"
       onClick={onClick}
       className={[
-        "h-9 rounded-[10px] px-3 text-sm font-semibold transition",
+        "h-9 rounded-full px-3.5 text-sm font-semibold transition duration-150 ease-snap",
         active
-          ? "bg-ember/10 text-ember dark:bg-ember/15 dark:text-pink-200"
+          ? "bg-ember/10 text-ember dark:bg-ember/15 dark:text-orange-200"
           : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10"
       ].join(" ")}
     >
@@ -556,7 +576,7 @@ function KindOption({
       type="button"
       onClick={onClick}
       className={[
-        "flex h-11 items-center justify-center gap-2 rounded-[10px] border text-sm font-bold transition",
+        "flex h-11 items-center justify-center gap-2 rounded-full border text-sm font-bold transition duration-150 ease-snap",
         selected
           ? selectedClass
           : "border-slate-200 text-slate-500 hover:border-slate-300 dark:border-line dark:text-slate-400"

@@ -117,7 +117,7 @@ export function CostsPercentTable({ value, onChange }: CostsPercentTableProps) {
           {value.manual_costs.map((cost, index) => (
             <div
               key={itemKeysRef.current[index]}
-              className="rounded-[10px] border border-slate-200/80 bg-slate-50/70 p-2.5 shadow-sm dark:border-line dark:bg-black/15"
+              className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-2.5 shadow-sm dark:border-line dark:bg-black/15"
             >
               <div className="grid grid-cols-[minmax(0,1fr)_76px_40px] gap-2">
                 <input
@@ -179,7 +179,7 @@ export function CostsPercentTable({ value, onChange }: CostsPercentTableProps) {
           ))}
 
           {value.manual_costs.length === 0 ? (
-            <div className="rounded-[10px] border border-dashed border-slate-300 px-3 py-3 text-center text-xs text-slate-500 dark:border-line dark:text-slate-400">
+            <div className="rounded-2xl border border-dashed border-slate-300 px-3 py-3 text-center text-xs text-slate-500 dark:border-line dark:text-slate-400">
               Adicione um custo em reais ou porcentagem quando precisar.
             </div>
           ) : null}

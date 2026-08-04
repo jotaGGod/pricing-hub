@@ -91,7 +91,7 @@ export function SimulationsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-3xl font-black">Simulações</h1>
+        <h1 className="text-display text-[34px] leading-none sm:text-[40px]">Simulações</h1>
         <p className="mt-2 text-slate-500 dark:text-slate-400">Histórico salvo</p>
       </div>
 
@@ -130,17 +130,17 @@ export function SimulationsPage() {
                       <p className="font-semibold">{title}</p>
                       {subtitle ? <p className="truncate text-xs text-slate-500 dark:text-slate-400">{subtitle}</p> : null}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-1.5 text-slate-500 dark:text-slate-400">
+                    <td className="text-figure whitespace-nowrap px-4 py-1.5 text-slate-500 dark:text-slate-400">
                       {input?.quantity ? input.quantity : "—"}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-1.5 text-slate-500 dark:text-slate-400">
+                    <td className="text-figure whitespace-nowrap px-4 py-1.5 text-slate-500 dark:text-slate-400">
                       {result ? formatBRL(result.product_cost_cents) : "—"}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-1.5">
+                    <td className="text-figure whitespace-nowrap px-4 py-1.5">
                       {result ? formatBRL(result.recommended_sale_price_cents) : "—"}
                     </td>
-                    <td className="whitespace-nowrap px-4 py-1.5">{result ? formatBPS(result.margin_bps) : "—"}</td>
-                    <td className="whitespace-nowrap px-4 py-1.5">{result ? formatBRL(result.net_profit_cents) : "—"}</td>
+                    <td className="text-figure whitespace-nowrap px-4 py-1.5">{result ? formatBPS(result.margin_bps) : "—"}</td>
+                    <td className="text-figure whitespace-nowrap px-4 py-1.5">{result ? formatBRL(result.net_profit_cents) : "—"}</td>
                     <td className="whitespace-nowrap px-4 py-1.5 text-slate-500 dark:text-slate-400">{platform}</td>
                     <td className="px-4 py-1.5 text-right">
                       <div className="flex justify-end gap-1.5">

@@ -10,7 +10,7 @@ export function SettingsPage() {
   return (
     <div className="max-w-3xl space-y-5">
       <div>
-        <h1 className="text-3xl font-black">Ajustes</h1>
+        <h1 className="text-display text-[34px] leading-none sm:text-[40px]">Ajustes</h1>
         <p className="mt-2 text-slate-500 dark:text-slate-400">Preferencias da conta</p>
       </div>
       <ThemeSettings />

@@ -3,6 +3,7 @@ import { LoginPage } from "../features/auth/LoginPage";
 import { RegisterPage } from "../features/auth/RegisterPage";
 import { CategoriesPage } from "../features/finance/CategoriesPage";
 import { DashboardPage } from "../features/finance/DashboardPage";
+import { DrePage } from "../features/finance/DrePage";
 import { FinanceLayout } from "../features/finance/FinanceLayout";
 import { TransactionsPage } from "../features/finance/TransactionsPage";
 import { PricingPage } from "../features/pricing/PricingPage";
@@ -25,6 +26,7 @@ export function AppRoutes() {
             <Route index element={<Navigate to="/finance/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="transactions" element={<TransactionsPage />} />
+            <Route path="dre" element={<DrePage />} />
             <Route path="categories" element={<CategoriesPage />} />
           </Route>
           <Route path="/products" element={<ProductsPage />} />

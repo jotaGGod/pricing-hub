@@ -10,7 +10,7 @@ export function ThemeSettings() {
         <button
           type="button"
           className={[
-            "flex h-14 items-center justify-center gap-2 rounded-md border text-sm font-black transition",
+            "flex h-14 items-center justify-center gap-2 rounded-2xl border text-sm font-black transition duration-150 ease-snap",
             theme === "dark"
               ? "border-mint bg-mint text-slate-950"
               : "border-slate-200 bg-white text-slate-600 dark:border-line dark:bg-slate-950/30 dark:text-slate-300"
@@ -23,7 +23,7 @@ export function ThemeSettings() {
         <button
           type="button"
           className={[
-            "flex h-14 items-center justify-center gap-2 rounded-md border text-sm font-black transition",
+            "flex h-14 items-center justify-center gap-2 rounded-2xl border text-sm font-black transition duration-150 ease-snap",
             theme === "light"
               ? "border-ember bg-ember text-white"
               : "border-slate-200 bg-white text-slate-600 dark:border-line dark:bg-slate-950/30 dark:text-slate-300"

@@ -36,7 +36,7 @@ export function ProductsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-3xl font-black">Produtos</h1>
+        <h1 className="text-display text-[34px] leading-none sm:text-[40px]">Produtos</h1>
         <p className="mt-2 text-slate-500 dark:text-slate-400">Catálogo salvo</p>
       </div>
 
@@ -71,7 +71,7 @@ export function ProductsPage() {
                   className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50 dark:border-line dark:hover:bg-white/[0.03]"
                 >
                   <td className="px-4 py-1.5 font-semibold">{productTitle(product)}</td>
-                  <td className="px-4 py-1.5 text-slate-500 dark:text-slate-400">{formatBRL(productCost(product))}</td>
+                  <td className="text-figure px-4 py-1.5 text-slate-500 dark:text-slate-400">{formatBRL(productCost(product))}</td>
                   <td className="px-4 py-1.5 text-right">
                     <button
                       type="button"
