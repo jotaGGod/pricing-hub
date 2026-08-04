@@ -18,7 +18,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
             <Tags size={24} />
           </div>
           <div>
-            <h1 className="text-display text-xl leading-none tracking-normal">nexosgen | pricing-hub</h1>
+            <h1 className="text-display normal-case text-xl leading-none tracking-normal">Pricing Hub by NexosGen</h1>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Precificacao de marketplace</p>
           </div>
         </div>

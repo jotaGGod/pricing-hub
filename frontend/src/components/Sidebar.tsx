@@ -65,7 +65,7 @@ export function Sidebar() {
           <Tags size={19} />
         </div>
         <div className="min-w-0">
-          <p className="text-display truncate text-[13px] leading-none tracking-normal">nexosgen | pricing-hub</p>
+          <p className="text-display normal-case truncate text-sm leading-none tracking-normal">Pricing Hub by NexosGen</p>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Marketplaces</p>
         </div>
       </div>
