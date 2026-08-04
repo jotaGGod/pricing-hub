@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { UserPlus } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthContext";
 
 export function RegisterForm() {
@@ -29,7 +29,6 @@ export function RegisterForm() {
 
   return (
     <form className="space-y-4" onSubmit={submit}>
-      <h2 className="text-xl font-black">Criar conta</h2>
       <label className="block space-y-2">
         <span className="field-label">Nome</span>
         <input className="input-base" value={name} onChange={(event) => setName(event.target.value)} />
@@ -52,11 +51,6 @@ export function RegisterForm() {
         <UserPlus size={17} />
         Cadastrar
       </button>
-      <p className="text-center text-sm text-slate-500 dark:text-slate-400">
-        <Link className="font-bold text-ember" to="/login">
-          Entrar
-        </Link>
-      </p>
     </form>
   );
 }

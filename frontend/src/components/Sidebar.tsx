@@ -64,8 +64,8 @@ export function Sidebar() {
         <div className="grid h-9 w-9 place-items-center rounded-xl bg-ember text-white shadow-glow">
           <Tags size={19} />
         </div>
-        <div>
-          <p className="text-display text-lg leading-none">pricing-hub</p>
+        <div className="min-w-0">
+          <p className="text-display truncate text-[13px] leading-none tracking-normal">nexosgen | pricing-hub</p>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Marketplaces</p>
         </div>
       </div>

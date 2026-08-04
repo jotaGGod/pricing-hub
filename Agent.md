@@ -6,6 +6,8 @@ Este arquivo é a memória operacional do projeto para novos chats/agentes. Ante
 
 `pricing-hub` é um sistema full-stack para precificação de produtos vendidos em e-commerce e marketplaces.
 
+**Nome de marca exibido ao usuário (desde 2026-08-04): "NEXOSGEN | pricing-hub"** (renderiza `NEXOSGEN | PRICING-HUB` via `.text-display`, que já aplica `uppercase`). Isso é só o texto mostrado na UI (wordmark na Sidebar/`AuthLayout.tsx`, `<title>` em `index.html`, `AppName` do Fiber nos dois `main.go`) — não é uma renomeação do repositório, do módulo Go (`pricing-hub/backend/...` continua sendo o import path em todo o backend), do pacote npm (`pricing-hub-frontend`), das chaves de `localStorage` (`pricing-hub-theme`, `pricing-hub:pricing-draft:v1`, `pricing-hub:finance-period:v1` — trocar essas apagaria rascunhos/tema salvos de usuários existentes sem necessidade) nem da URL de produção (`pricing-hub.vercel.app`). Se pedirem pra trocar QUALQUER um desses identificadores internos, é uma decisão maior e separada — confirme antes.
+
 O objetivo principal é permitir que o usuário:
 
 - cadastre produtos;
@@ -562,6 +564,16 @@ Reformulação de toda a linguagem visual do frontend, pedida explicitamente pel
 6. Ajuste fino pós-validação: valores de KPI em mono ficavam ligeiramente mais largos que a fonte antiga e estouravam cards de 2 colunas no mobile — `KpiCard` em `DashboardPage.tsx` ganhou `text-xl sm:text-2xl` (era `text-2xl` fixo) para caber.
 
 Validado nos dois temas (claro/escuro), desktop e mobile, em todas as telas, via Docker. Branch de trabalho: `develop` — checkpoint no momento em que esta nota foi escrita, ver `git log`/`git status` para o estado real de push/merge.
+
+### Sessão Login Unificado + Marca NEXOSGEN (2026-08-04)
+
+Nesta sessão, em sequência:
+
+1. **Tela de login/registro unificada**: `LoginPage`/`RegisterPage` continuam rotas separadas (`/login`, `/register`, preservando deep-link/OAuth redirect), mas agora compartilham um único `AuthLayout.tsx` com um seletor em pílula "Entrar / Criar conta" no topo do card (`NavLink` estilizado, não é state local — trocar de aba navega de verdade entre as rotas). O botão "Continuar com Google" e o divisor "ou" também subiram pro `AuthLayout` (compartilhados pelas duas telas). `LoginForm.tsx`/`RegisterForm.tsx` perderam o `<h2>` de título e o link de rodapé cruzado (`Criar conta`/`Entrar`) — ambos redundantes agora que o seletor no topo já faz essa navegação.
+2. **Logo do Google trocado por um asset oficial baixado do CDN da própria Google** (`https://www.gstatic.com/images/branding/googleg/1x/googleg_standard_color_128dp.png`, salvo em `frontend/public/google-logo.png`, PNG 128×128 com transparência). O SVG "G" multicolorido desenhado à mão numa iteração anterior desta mesma feature ficava com o formato levemente errado — não tente redesenhar esse ícone do zero de novo; se precisar mudar, baixe outro asset oficial.
+3. **Nome de marca exibido virou "NEXOSGEN | pricing-hub"** — ver nota completa em "Contexto Geral" no topo deste arquivo sobre o que mudou (wordmark, `<title>`, `AppName` do Fiber) e o que deliberadamente NÃO mudou (módulo Go, pacote npm, chaves de `localStorage`, URL de produção).
+
+Branch de trabalho: `develop` — checkpoint no momento em que esta nota foi escrita, ver `git log`/`git status` para o estado real de push/merge.
 
 ## Docker Local
 

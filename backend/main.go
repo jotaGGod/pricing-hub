@@ -79,7 +79,7 @@ func main() {
 	financeController := finance.NewController(financeService)
 
 	app := fiber.New(fiber.Config{
-		AppName: "pricing-hub",
+		AppName: "nexosgen-pricing-hub",
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			status := fiber.StatusInternalServerError
 			message := "erro interno"
