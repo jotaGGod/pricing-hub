@@ -99,7 +99,7 @@ JWT_ACCESS_SECRET=uma-chave-forte
 COOKIE_SECURE=true
 ```
 
-OAuth Google, se usado:
+OAuth Google — sem essas três variáveis preenchidas com valores reais (tanto aqui quanto no `.env` local, ver `.env.example` na raiz), o botão "Continuar com Google" falha de propósito (redireciona pra `/login?error=google_unavailable` em vez de quebrar, ver sessão 2026-08-04 abaixo), mas continua funcionalmente indisponível até alguém gerar as credenciais no Google Cloud Console:
 
 ```txt
 GOOGLE_CLIENT_ID=
@@ -574,6 +574,13 @@ Nesta sessão, em sequência:
 3. **Nome de marca exibido virou "Pricing Hub by NexosGen"** (formato final, depois de uma primeira tentativa em "NEXOSGEN | pricing-hub" que o usuário pediu pra trocar no mesmo dia) — ver nota completa em "Contexto Geral" no topo deste arquivo sobre o que mudou (wordmark com `normal-case` pra preservar o camel-case de "NexosGen", `<title>`, `AppName` do Fiber) e o que deliberadamente NÃO mudou (módulo Go, pacote npm, chaves de `localStorage`, URL de produção).
 
 Branch de trabalho: `develop` — checkpoint no momento em que esta nota foi escrita, ver `git log`/`git status` para o estado real de push/merge.
+
+### Sessão Diagnóstico Google OAuth + graphify (2026-08-04)
+
+1. **graphify instalado no projeto**: `graphify extract . --code-only` gerou `graphify-out/graph.json` (908 nodes, 1870 edges, 63 comunidades — sem LLM, só AST, então docs/imagens não foram indexados). `graphify claude install` escreveu a seção `## graphify` em `CLAUDE.md` + hook `PreToolUse` em `.claude/settings.json`. `graphify hook install` registrou hooks git `post-commit`/`post-checkout` (rebuild automático do grafo, AST-only) + merge driver pro `graph.json`. Tudo isso ficou **local, não commitado** (intenção do usuário é só economizar tokens de busca, não versionar o grafo). Se `graphify-out/graph.json` sumir, rodar `graphify extract . --code-only && graphify cluster-only . --no-label` de novo recria.
+2. **Diagnóstico do login via Google (estava quebrado)**: a causa raiz é que `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` nunca foram configurados em lugar nenhum (não existe `.env` na raiz, que é o que o `docker-compose.yml` carrega via `${GOOGLE_CLIENT_ID:-}`). Com isso `GoogleOAuth.ready = false` e clicar em "Continuar com Google" batia em `/api/auth/google/start`, que devolvia um JSON cru de erro (`{"error":"entrada invalida"}`) direto no navegador — porque o botão é um `<a href>` (navegação de página inteira), não um `fetch`. A lógica de criação/vínculo de conta via Google (`Service.GoogleCallback` em `backend/internal/domain/identity/service.go`, `PostgresUserRepository.Create`/`LinkGoogle`) está correta — não precisou mudar.
+3. **Fix aplicado (funciona independente de credenciais reais existirem)**: `GoogleStart` e `GoogleCallback` em `backend/internal/domain/identity/controller.go` agora redirecionam pra `{FRONTEND_URL}/login?error=<motivo>` em vez de devolver JSON cru (novo helper `Service.LoginErrorRedirectURL()` em `service.go`, ao lado de `PostLoginRedirectURL()`, ambos usando `frontendRedirect()`). O frontend (`AuthLayout.tsx`) lê `?error=` via `useSearchParams` e mostra uma mensagem amigável acima do botão do Google (mapa `googleErrorMessages`, mesmo tratamento visual do erro de login normal: `text-sm font-semibold text-orange-500`). Testado end-to-end via clique real no browser (Playwright/MCP) sem credenciais configuradas — antes: JSON cru na tela; depois: volta pra `/login` com mensagem legível.
+4. **O que ainda falta e só o usuário consegue fazer**: criar um OAuth Client ID real no Google Cloud Console (tipo "Web application", redirect URI `http://localhost:8080/api/auth/google/callback` em dev). Criei `.env.example` na raiz do projeto documentando isso (`docker-compose.yml` carrega `.env` da raiz automaticamente) e adicionei `/.env` ao `.gitignore` (antes só existiam `backend/.env`/`frontend/.env` no gitignore, faltava a raiz). Em produção (Vercel), as mesmas variáveis (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URL=https://pricing-hub.vercel.app/api/auth/google/callback`) precisam ser configuradas no dashboard da Vercel — não dá pra verificar por aqui se já estão.
 
 ## Docker Local
 

@@ -1,14 +1,24 @@
 import type { ReactNode } from "react";
 import { Tags } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useSearchParams } from "react-router-dom";
 import { googleStartUrl } from "../services/auth";
 
 const tabBaseClass = "flex-1 rounded-full py-2 text-center text-sm font-semibold transition duration-150 ease-snap";
 const tabActiveClass = "bg-white text-slate-900 shadow-sm dark:bg-ink dark:text-white";
 const tabInactiveClass = "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200";
 
+// Backend redirects here (?error=<reason>) when the Google OAuth round trip
+// fails, instead of dumping raw JSON on a page the user has no way back from.
+const googleErrorMessages: Record<string, string> = {
+  google_unavailable: "Login com Google esta temporariamente indisponivel. Use email e senha ou tente novamente mais tarde.",
+  google_failed: "Nao foi possivel concluir o login com o Google. Tente novamente."
+};
+
 export function AuthLayout({ children }: { children: ReactNode }) {
   const isRegister = useLocation().pathname === "/register";
+  const [searchParams] = useSearchParams();
+  const googleError = searchParams.get("error");
+  const googleErrorMessage = googleError ? googleErrorMessages[googleError] ?? googleErrorMessages.google_failed : null;
 
   return (
     <main className="grid min-h-screen place-items-center bg-slate-100 px-4 py-10 text-slate-900 dark:bg-ink dark:text-slate-100">
@@ -41,6 +51,10 @@ export function AuthLayout({ children }: { children: ReactNode }) {
               Criar conta
             </NavLink>
           </div>
+
+          {googleErrorMessage ? (
+            <p className="text-sm font-semibold text-orange-500">{googleErrorMessage}</p>
+          ) : null}
 
           <a className="btn-secondary w-full" href={googleStartUrl()}>
             <img src="/google-logo.png" alt="" className="h-[18px] w-[18px]" />

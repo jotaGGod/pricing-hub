@@ -70,7 +70,10 @@ func (h *Controller) Me(c *fiber.Ctx) error {
 func (h *Controller) GoogleStart(c *fiber.Ctx) error {
 	state, authURL, err := h.service.GoogleAuthURL()
 	if err != nil {
-		return transport.RespondError(c, err)
+		// The button is a plain <a href>, not a fetch — a JSON body here would
+		// just render as raw text in the browser instead of taking the user
+		// anywhere. Bounce back to login with a readable reason instead.
+		return c.Redirect(h.service.LoginErrorRedirectURL("google_unavailable"), fiber.StatusTemporaryRedirect)
 	}
 	c.Cookie(&fiber.Cookie{
 		Name:     "oauth_state",
@@ -87,7 +90,11 @@ func (h *Controller) GoogleStart(c *fiber.Ctx) error {
 func (h *Controller) GoogleCallback(c *fiber.Ctx) error {
 	_, tokens, err := h.service.GoogleCallback(c.Context(), c.Query("state"), c.Cookies("oauth_state"), c.Query("code"))
 	if err != nil {
-		return transport.RespondError(c, err)
+		h.clearCookie(c, "oauth_state")
+		// Same reasoning as GoogleStart: this leg is Google redirecting the
+		// browser back to us, still a top-level navigation, not fetch — JSON
+		// would just be dumped on screen instead of returning the user to the app.
+		return c.Redirect(h.service.LoginErrorRedirectURL("google_failed"), fiber.StatusTemporaryRedirect)
 	}
 	h.setSessionCookies(c, tokens)
 	h.clearCookie(c, "oauth_state")

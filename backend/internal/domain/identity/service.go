@@ -171,9 +171,21 @@ func (s *Service) GoogleCallback(ctx context.Context, state string, cookieState 
 // OAuth round trip. Falls back to a relative path if FrontendURL is unset or
 // malformed, so the redirect never points nowhere.
 func (s *Service) PostLoginRedirectURL() string {
-	redirectTo := strings.TrimRight(s.cfg.FrontendURL, "/") + "/pricing"
+	return s.frontendRedirect("/pricing")
+}
+
+// LoginErrorRedirectURL is where the browser lands when the Google OAuth
+// round trip fails (start or callback). Without this the failure surfaces as
+// a raw JSON error in the browser instead of bouncing the user back to the
+// login screen with a readable message.
+func (s *Service) LoginErrorRedirectURL(reason string) string {
+	return s.frontendRedirect("/login?error=" + url.QueryEscape(reason))
+}
+
+func (s *Service) frontendRedirect(path string) string {
+	redirectTo := strings.TrimRight(s.cfg.FrontendURL, "/") + path
 	if _, err := url.Parse(redirectTo); err != nil {
-		return "/pricing"
+		return path
 	}
 	return redirectTo
 }
